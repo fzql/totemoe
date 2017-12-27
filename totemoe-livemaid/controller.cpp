@@ -9,8 +9,30 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
     m_hWnd(hWnd), m_model(L"Generic"), m_statusBar(hWnd, IDC_STATUSBAR),
     m_listView(hWnd, IDC_LISTVIEW)
 {
-    m_statusBar.setParts({ 400, 600, 800 });
+    // Initialize property sheet pages.
+    std::vector<HPROPSHEETPAGE> propSheetPages;
+    PROPSHEETPAGE propSheetPage;
+    propSheetPage.dwSize = sizeof(PROPSHEETPAGE);
+    propSheetPage.dwFlags = PSP_DEFAULT;
+    propSheetPage.hInstance = I18N::GetHandle();
+    propSheetPage.pfnDlgProc = NULL;
+    propSheetPage.lParam = (LPARAM)NULL;
+    propSheetPage.pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_I18N);
+    propSheetPages.push_back(CreatePropertySheetPage(&propSheetPage));
+    // Initialize property sheet header.
+    PROPSHEETHEADER propSheetHeader;
+    propSheetHeader.dwSize = sizeof(PROPSHEETHEADER);
+    propSheetHeader.dwFlags = PSH_MODELESS;
+    propSheetHeader.hwndParent = hWnd;
+    propSheetHeader.hInstance = I18N::GetHandle();
+    propSheetHeader.nPages = propSheetPages.size();
+    propSheetHeader.phpage = propSheetPages.data();
+    propSheetHeader.nStartPage = 0;
+    // Initialize property sheet.
+    m_hPropSheet = (HWND)::PropertySheet(&propSheetHeader);
+
     // Initialize status bar.
+    m_statusBar.setParts({ 400, 600, 800 });
     // Load these from string tables.
     m_statusBar.setText(0, L"Copyright (C) 2017 FrenzyLi");
     m_statusBar.setText(1, L"Cells");
@@ -89,6 +111,10 @@ void Controller::command(int cmd)
 
     case IDM_DANMAKU_SELECTALL:
         m_listView.selectAll();
+        break;
+
+    case IDM_PREFERENCES:
+
         break;
     }
 }

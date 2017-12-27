@@ -12,6 +12,7 @@
 #define IDD_DIALOG1                     105
 #define IDD_CONNECT                     105
 #define IDS_BILI_PROTOCOL               106
+#define IDD_PROPPAGE_I18N               106
 #define IDS_BILI_ROOM                   107
 #define IDS_BILI_USERID                 108
 #define IDC_TOTEMOELIVEMAID             109
@@ -33,6 +34,7 @@
 #define IDS_WEBSOCKET_UNKNOWN           124
 #define IDC_CONNECT_RESOLVE             1001
 #define IDC_CONNECT_ROOMID              1002
+#define IDC_COMBO_I18N_LANGUAGE         1009
 #define IDM_HELP                        32775
 #define ID_HELP_ABOUT                   40001
 #define ID_HELP_HELP                    40002
@@ -54,14 +56,15 @@
 #define IDM_DANMAKU_COPYSELECTED        40023
 #define IDM_DANMAKU_SELECTALL           40025
 #define ID_HELP_GITHUB                  40026
+#define IDM_PREFERENCES                 40027
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
-#define _APS_NEXT_COMMAND_VALUE         40027
-#define _APS_NEXT_CONTROL_VALUE         1004
+#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_COMMAND_VALUE         40028
+#define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

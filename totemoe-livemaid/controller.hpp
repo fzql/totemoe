@@ -99,6 +99,8 @@ private:
 
     HWND            m_hWnd;
 
+    HWND            m_hWndConnect;
+
     Model           m_model;
 
     View            m_view;
@@ -109,7 +111,7 @@ private:
 
     MessageSession  m_session;
 
-    HWND            m_hWndConnect;
+    HWND            m_hPropSheet;
 
     std::thread     m_thread_fetch;
 };
