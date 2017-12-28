@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "CppUnitTest.h"
+#ifndef _DEBUG
 #include "bili-database/bili-database.hpp"
+#endif
 
 #ifdef _DEBUG
 #include <locale>
@@ -11,6 +13,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace totemoeunittest
 {
+#ifndef _DEBUG
     TEST_CLASS(BiliDatabase)
     {
     public:
@@ -31,4 +34,5 @@ namespace totemoeunittest
             }
         }
     };
+#endif
 }
