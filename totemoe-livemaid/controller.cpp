@@ -7,7 +7,8 @@
 
 Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
     m_hWnd(hWnd), m_model(L"Generic"), m_statusBar(hWnd, IDC_STATUSBAR),
-    m_listView(hWnd, IDC_LISTVIEW)
+    m_listView(hWnd, IDC_LISTVIEW), m_commandType(hWnd, IDC_COMMANDLINE_COMBO),
+    m_commandLine(hWnd, IDC_COMMANDLINE_EDIT)
 {
     // Initialize status bar.
     m_statusBar.setParts({ 400, 600, 800 });
@@ -29,6 +30,15 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
         (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_LIVEMAID_TRIGGER),
     }, { 80, 80, 150, 40, 80, 40, 180, 300, 40 });
     m_listView.show();
+    // Initialize the command edit control and combo box.
+    m_commandType.show();
+    m_commandType.add((LPCWSTR)
+        ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_DANMAKU));
+    m_commandType.add((LPCWSTR)
+        ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_BANUSER));
+    m_commandType.add((LPCWSTR)
+        ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING));
+    m_commandLine.show();
     // Initialize chat room.
     m_session.setTableListView(m_listView);
     m_session.setStatusBar(m_statusBar);
@@ -206,10 +216,46 @@ void Controller::size(int cx, int cy)
     m_view.SetSize(cx, cy);
     m_statusBar.setSize(cx);
 
+    LONG heightStatusBar = m_statusBar.getHeight();
+    LONG heightListView = cy - heightStatusBar;
+
+    if (cx < 300)
+    {
+        m_commandType.hide();
+        m_commandLine.hide();
+    }
+    else
+    {
+        LONG heightCommand = m_commandType.getHeight();
+        heightListView -= heightCommand;
+
+        m_commandType.setPosition(0, heightListView);
+        m_commandType.setSize(80, 25);
+        m_commandLine.setPosition(80, heightListView);
+        m_commandLine.setSize(cx - 80, 25);
+        m_commandType.show();
+        m_commandLine.show();
+    }
+
     // LONG height = m_statusBar.GetHeight();
     m_listView.setPosition(0, 0);
-    m_listView.setSize(cx, cy - m_statusBar.getHeight());
+    m_listView.setSize(cx, heightListView);
 }
+
+void Controller::submit()
+{
+    Bili::User::Credentials cred = Bili::Settings::GetCredentials();
+    Bili::User::SendOptions options;
+    options.roomid = m_session.getRoomID();
+    options.msg = m_commandLine.getContent();
+    options.prepare();
+    auto response = Bili::User::SendRoomChat(cred, options);
+    std::string lol = response.dump();
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring yup = converter.from_bytes(lol);
+    m_statusBar.setText(0, yup);
+}
+
 
 // Message handler for about box.
 INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)

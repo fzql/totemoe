@@ -17,6 +17,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -52,6 +53,7 @@ END
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -264,6 +266,9 @@ STRINGTABLE
 BEGIN
     IDS_PROPPAGE_SESSION_SUCCESS "Success!"
     IDS_PROPPAGE_SESSION_FAIL "Failure: "
+    IDS_COMMANDTYPE_DANMAKU "Send"
+    IDS_COMMANDTYPE_BANUSER "Ban"
+    IDS_COMMANDTYPE_FILTERSTRING "Filter"
 END
 
 #endif    // English (United States) resources

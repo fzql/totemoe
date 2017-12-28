@@ -97,6 +97,8 @@ public:
     void showPropertySheet();
     
     void size(int x, int y);
+
+    void submit();
 private:
 
     static HMODULE  hI18N;
@@ -112,6 +114,10 @@ private:
     StatusBar       m_statusBar;
 
     TableListView   m_listView;
+
+    ComboBox        m_commandType;
+
+    EditControl     m_commandLine;
 
     MessageSession  m_session;
 

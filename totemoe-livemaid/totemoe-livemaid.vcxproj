@@ -193,6 +193,7 @@
     <ClCompile Include="view.cpp" />
     <ClCompile Include="win-class-base.cpp" />
     <ClCompile Include="win-class.cpp" />
+    <ClCompile Include="win-control.cpp" />
     <ClCompile Include="win-maker.cpp" />
   </ItemGroup>
   <ItemGroup>

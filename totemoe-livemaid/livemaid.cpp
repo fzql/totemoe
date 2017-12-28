@@ -48,7 +48,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         WinMainMaker mainWindow(mainWndClass, IDS_APP_TITLE);
         mainWindow.Create();
         mainWindow.Show(nCmdShow);
-        
+
         // Load acceleration table.
         HACCEL hAccelTable =
             LoadAccelerators(I18N::GetHandle(), MAKEINTRESOURCE(IDR_ACCELERATOR));
@@ -187,6 +187,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DISCONNECT:
         pCtrl->disconnect();
+        break;
+    case WM_COMMANDLINE_ENTER:
+        pCtrl->submit();
         break;
     case WM_INITMENUPOPUP:
         pCtrl->initMenu((HMENU)wParam);

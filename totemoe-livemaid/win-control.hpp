@@ -29,15 +29,20 @@ public:
         return m_hWnd;
     }
 
-    LONG getHeight()
+    virtual LONG getHeight()
     {
-        return m_nHeight;
+        RECT rect;
+        ::GetWindowRect(m_hWnd, &rect);
+        return rect.bottom - rect.top;
     }
 
-    LONG getWidth()
+    virtual LONG getWidth()
     {
-        return m_nWidth;
+        RECT rect;
+        ::GetWindowRect(m_hWnd, &rect);
+        return rect.right - rect.left;
     }
+
     void hide()
     {
         ::ShowWindow(m_hWnd, SW_HIDE);
@@ -57,6 +62,19 @@ public:
     {
         ::SetFocus(m_hWnd);
     }
+
+    virtual void setPosition(int X, int Y)
+    {
+        SetWindowPos(m_hWnd, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
+        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
+    }
+
+    virtual void setSize(int cx, int cy)
+    {
+        SetWindowPos(m_hWnd, NULL, NULL, NULL, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
+        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
+    }
+
 protected:
 
     HWND m_hWnd;
@@ -91,6 +109,8 @@ public:
         }
     }
 public:
+
+    LONG getHeight() const { return m_nHeight; }
 
     void setParts(std::vector<int> const &rights)
     {
@@ -351,21 +371,86 @@ public:
         }
     }
 
-    void setPosition(int X, int Y)
-    {
-        SetWindowPos(m_hWnd, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
-        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
-    }
-
-    void setSize(int cx, int cy)
-    {
-        SetWindowPos(m_hWnd, NULL, NULL, NULL, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
-        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
-    }
-
 protected:
 
     std::vector<std::wstring> m_vColumns;
 
     bool m_bLockVScroll;
+};
+
+class ComboBox : public WinControl
+{
+public:
+
+    ComboBox(HWND hWndParent, int id) :
+        WinControl(hWndParent, id)
+    {
+        m_hWnd = ::CreateWindowEx(
+            WS_EX_OVERLAPPEDWINDOW,
+            WC_COMBOBOX,
+            NULL,
+            CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_SIMPLE | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            hWndParent,
+            (HMENU)id,
+            WinGetLong<HINSTANCE>(hWndParent, GWL_HINSTANCE),
+            NULL
+        );
+
+        // Reference: https://stackoverflow.com/a/6057761/1377770
+        NONCLIENTMETRICS ncm;
+        ncm.cbSize = sizeof(ncm);
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+        HFONT hDlgFont = CreateFontIndirect(&(ncm.lfMessageFont));
+        ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM)hDlgFont, TRUE);
+    }
+public:
+
+    void add(std::wstring const &content)
+    {
+        ::SendMessage(m_hWnd, CB_ADDSTRING, (WPARAM)NULL, (LPARAM)content.c_str());
+    }
+};
+
+LRESULT CALLBACK commandEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+class EditControl : public WinControl
+{
+public:
+
+    EditControl(HWND hWndParent, int id) :
+        WinControl(hWndParent, id)
+    {
+        m_hWnd = ::CreateWindow(
+            WC_EDIT,
+            NULL,
+            WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            hWndParent,
+            (HMENU)id,
+            WinGetLong<HINSTANCE>(hWndParent, GWL_HINSTANCE),
+            NULL
+        );
+
+        // Reference: https://stackoverflow.com/a/6057761/1377770
+        NONCLIENTMETRICS ncm;
+        ncm.cbSize = sizeof(ncm);
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+        HFONT hDlgFont = CreateFontIndirect(&(ncm.lfMessageFont));
+        ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM)hDlgFont, TRUE);
+
+        defaultEditProc = (WNDPROC)
+            ::SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, (LONG_PTR)commandEditProc);
+    }
+
+    std::wstring getContent()
+    {
+        WCHAR szContent[MAX_LOADSTRING];
+        GetWindowText(m_hWnd, szContent, MAX_LOADSTRING);
+        return std::wstring(szContent);
+    }
+
+public:
+
+    static WNDPROC defaultEditProc;
 };
