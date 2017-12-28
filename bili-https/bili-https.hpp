@@ -137,7 +137,9 @@ namespace Bili
             }
         };
 
+        BILIHTTPS_API json GetSignInInfo(Credentials const &cred);
+
         BILIHTTPS_API json SendRoomChat(Credentials const &cred,
-            ROOM roomid, SendOptions const &options);
+            SendOptions const &options);
     }
 }

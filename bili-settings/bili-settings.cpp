@@ -30,8 +30,8 @@ json Bili::Settings::GetCredentials()
 {
     File::Load();
     return json{
-        { "DedeUserID", File::Get("Credentials", "DedeUserID") },
-        { "DedeUserID__ckMd5", File::Get("Credentials", "DedeUserID__ckMd5") },
-        { "SESSDATA", File::Get("Credentials", "SESSDATA") }
+        { "DedeUserID", File::Get("Session", "DedeUserID") },
+        { "DedeUserID__ckMd5", File::Get("Session", "DedeUserID__ckMd5") },
+        { "SESSDATA", File::Get("Session", "SESSDATA") }
     };
 }
