@@ -11,7 +11,8 @@ json Bili::User::GetSignInInfo(Credentials const &cred)
 {
     auto url = Bili::Settings::GetAPI("live", "signInInfo");
     return curlHttpsGet(url, {
-        { "cookie", { { "content", cred } } }
+        { "cookie", { { "content", cred } } },
+        { "data", true }
     });
 }
 

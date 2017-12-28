@@ -162,7 +162,6 @@ static bool initHttpsGet(CURL *&conn, const char *url,
     if (options.find("cookie") != options.end())
     {
         std::string content = options["cookie"];
-        content = "l=v; fts=1440723789; pgv_pvi=4705329152; _qddaz=QD.5g8jak.ir9its.itr7dctx; rpdid=owkmmloqxqdoplqqlwxxw; LIVE_BUVID=1c8e5fa964899eb51d8bcc2a8c977498; LIVE_BUVID__ckMd5=d7b5a404c7d57d77; sid=a571ix2g; UM_distinctid=15e670fde8870-0f95dbeec4947d-e313761-144000-15e670fde8991; uTZ=360; buvid3=FE399F26-4DE9-4C57-AD3D-88FB99A705FC4387infoc; biliMzIsnew=1; biliMzTs=0; finger=edc6ecda; im_seqno_4278633=68403; DedeUserID=4278633; DedeUserID__ckMd5=a185c69d095516bd; SESSDATA=d3411f47%2C1516347349%2Cabb243a5; bili_jct=45d84c2100b3399aaff81c8aaf59075a; Hm_lvt_8a6e55dbd2870f0f5bc9194cddf32a02=1513490311,1513564826,1513724785,1513792102; _dfcaptcha=f34e57f27ca5eb78751e2508445c2d5f; Hm_lpvt_8a6e55dbd2870f0f5bc9194cddf32a02=1513802426";
         code = curl_easy_setopt(conn, CURLOPT_COOKIE, content.c_str());
     }
 

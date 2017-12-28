@@ -1,7 +1,7 @@
 
 #include "stdafx.h"
-
 #include "controller.hpp"
+#include "bili-https/bili-https.hpp"
 
 INT_PTR CALLBACK PreferencesDlgProc(HWND hDlg, UINT message, LPARAM lParam)
 {
@@ -97,13 +97,88 @@ INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
     {
         // Populate session data from settings.
         std::wstring sessionUID = Bili::Settings::File::GetW("Session", "DedeUserID");
-        std::wstring sessionChecksum = Bili::Settings::File::GetW("Session", "DedeUserID__ckMd5");
-        std::wstring sessionSessData = Bili::Settings::File::GetW("Session", "SESSDATA");
+        std::wstring sessionChksm = Bili::Settings::File::GetW("Session", "DedeUserID__ckMd5");
+        std::wstring sessionData = Bili::Settings::File::GetW("Session", "SESSDATA");
         ::SetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID, sessionUID.c_str());
-        ::SetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID__CKMD5, sessionChecksum.c_str());
-        ::SetDlgItemText(hDlg, IDC_EDIT_SESSDATA, sessionSessData.c_str());
+        ::SetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID__CKMD5, sessionChksm.c_str());
+        ::SetDlgItemText(hDlg, IDC_EDIT_SESSDATA, sessionData.c_str());
+        if (sessionUID.empty() || sessionChksm.empty() || sessionData.empty())
+        {
+            EnableWindow(GetDlgItem(hDlg, IDC_SESSION_VERIFY), FALSE);
+        }
+        else
+        {
+            EnableWindow(GetDlgItem(hDlg, IDC_SESSION_VERIFY), TRUE);
+        }
         return TRUE;
     }
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDC_EDIT_DEDEUSERID ||
+            LOWORD(wParam) == IDC_EDIT_DEDEUSERID__CKMD5 ||
+            LOWORD(wParam) == IDC_EDIT_SESSDATA)
+        {
+            if (HIWORD(wParam) == EN_UPDATE)
+            {
+                bool allNonEmpty = true;
+                allNonEmpty &= ::GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_DEDEUSERID)) > 0;
+                allNonEmpty &= ::GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_DEDEUSERID__CKMD5)) > 0;
+                allNonEmpty &= ::GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_SESSDATA)) > 0;
+                if (allNonEmpty)
+                {
+                    EnableWindow(GetDlgItem(hDlg, IDC_SESSION_VERIFY), TRUE);
+                }
+                else
+                {
+                    EnableWindow(GetDlgItem(hDlg, IDC_SESSION_VERIFY), FALSE);
+                }
+                return TRUE;
+            }
+        }
+        else if (LOWORD(wParam) == IDC_SESSION_VERIFY)
+        {
+            if (HIWORD(wParam) == BN_CLICKED)
+            {
+                Bili::User::Credentials cred;
+                WCHAR szContent[MAX_LOADSTRING];
+                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+                ::GetWindowText(GetDlgItem(hDlg, IDC_EDIT_DEDEUSERID),
+                    szContent, MAX_LOADSTRING);
+                cred.DedeUserID = converter.to_bytes(szContent);
+
+                ::GetWindowText(GetDlgItem(hDlg, IDC_EDIT_DEDEUSERID__CKMD5),
+                    szContent, MAX_LOADSTRING);
+                cred.DedeUserID__ckMd5 = converter.to_bytes(szContent);
+
+                ::GetWindowText(GetDlgItem(hDlg, IDC_EDIT_SESSDATA),
+                    szContent, MAX_LOADSTRING);
+                cred.SESSDATA = converter.to_bytes(szContent);
+
+                auto response = Bili::User::GetSignInInfo(cred);
+                auto wResponse = converter.from_bytes(response.dump());
+
+                ResourceString title(
+                    I18N::GetHandle(), IDS_PROPPAGE_SESSION_RESULT);
+                if (response.is_object() && 
+                    response.find("error") == response.end())
+                {
+                    ResourceString success(
+                        I18N::GetHandle(), IDS_PROPPAGE_SESSION_SUCCESS);
+                    ::MessageBox(hDlg, (LPCWSTR)success, (LPCWSTR)title, MB_OK);
+                }
+                else
+                {
+                    ResourceString failure(
+                        I18N::GetHandle(), IDS_PROPPAGE_SESSION_FAIL);
+                    std::wstringstream wss;
+                    wss << (LPCWSTR)failure << wResponse;
+                    std::wstring result = wss.str();
+                    ::MessageBox(hDlg, result.c_str(), (LPCWSTR)title, MB_OK);
+                }
+            }
+        }
+        break;
 
     case WM_NOTIFY:
     {
@@ -140,14 +215,6 @@ INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
         }
         return FALSE;
     }
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            // EndDialog(hDlg, LOWORD(wParam));
-            return TRUE;
-        }
-        break;
     }
     return DefWindowProc(hDlg, message, wParam, lParam);
 }
