@@ -79,18 +79,22 @@ public:
     Controller(HWND hWnd, CREATESTRUCT *pCreate);
     
     ~Controller();
-    
+
     void command(int cmd);
 
     void connect();
 
     void disconnect();
 
+    HWND getPropertySheet() const { return m_hPropSheet; }
+
     void initMenu(HMENU hMenu);
 
     void paint();
     
     void setRoom(ROOM room);
+
+    void showPropertySheet();
     
     void size(int x, int y);
 private:
@@ -119,3 +123,9 @@ private:
 INT_PTR CALLBACK AboutDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 INT_PTR CALLBACK ConnectDlgProc(HWND, UINT, WPARAM, LPARAM);
+
+INT_PTR CALLBACK PreferencesDlgProc(HWND hDlg, UINT message, LPARAM lParam);
+
+INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
+INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

@@ -13,6 +13,7 @@
 #define IDS_BILI_PROTOCOL               106
 #define IDD_PROPPAGE_I18N               106
 #define IDS_BILI_ROOM                   107
+#define IDD_PROPPAGE_SESSION            107
 #define IDS_BILI_USERID                 108
 #define IDC_TOTEMOE_LIVEMAID            109
 #define IDS_BILI_USERNAME               109
@@ -31,8 +32,13 @@
 #define IDS_WEBSOCKET_CLOSED            122
 #define IDS_WEBSOCKET_FAILED            123
 #define IDS_WEBSOCKET_UNKNOWN           124
+#define IDS_PREFERENCES                 125
+#define IDS_PROPPAGE_I18N_LANGUAGE_SYSTEM 126
 #define IDC_CONNECT_RESOLVE             1001
 #define IDC_COMBO_I18N_LANGUAGE         1009
+#define IDC_EDIT_DEDEUSERID__CKMD5      1010
+#define IDC_EDIT_DEDEUSERID             1011
+#define IDC_EDIT_SESSDATA               1012
 #define IDM_HELP                        32775
 #define ID_40002                        40002
 #define ID_40003                        40003
@@ -62,7 +68,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        105
+#define _APS_NEXT_RESOURCE_VALUE        126
 #define _APS_NEXT_COMMAND_VALUE         40029
 #define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101

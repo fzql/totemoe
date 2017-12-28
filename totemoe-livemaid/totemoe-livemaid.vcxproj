@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClCompile Include="controller.cpp" />
     <ClCompile Include="i18n.cpp" />
+    <ClCompile Include="preferences.cpp" />
     <ClCompile Include="session.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

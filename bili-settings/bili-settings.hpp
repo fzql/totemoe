@@ -29,8 +29,14 @@ namespace Bili
             BILISETTINGS_API char const *Get(std::string const &section,
                 std::string const &key, char const *value = (char const *)NULL);
 
+            BILISETTINGS_API std::wstring GetW(std::string const &section,
+                std::string const &key, char const *value = (char const *)NULL);
+
             BILISETTINGS_API SI_Error Set(std::string const &section,
                 std::string const &key, char const *value = (char const *)NULL);
+
+            BILISETTINGS_API SI_Error SetW(std::string const &section,
+                std::string const &key, std::wstring const &value = std::wstring());
         }
 
         BILISETTINGS_API std::string GetAPI(
