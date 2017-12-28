@@ -9,6 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "totemoe-unit-test", "totemo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "additional-items", "additional-items", "{1DE08404-65B7-4555-8AC9-B75C46896B78}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
 		totemoe.sln.vsspell = totemoe.sln.vsspell
 	EndProjectSection
 EndProject
