@@ -7,12 +7,21 @@
 
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
+json Bili::User::GetSignInInfo(Credentials const &cred)
+{
+    auto url = Bili::Settings::GetAPI("live", "signInInfo");
+    return curlHttpsGet(url, {
+        { "cookie", { { "content", cred } } }
+    });
+}
+
 json Bili::User::SendRoomChat(Credentials const &cred,
-    ROOM roomid, SendOptions const &options)
+    SendOptions const &options)
 {
     auto url = Bili::Settings::GetAPI("live", "userSendToRoom");
-    return curlHttpsPost(url, roomid, {
+    return curlHttpsPost(url, {
         { "post", { { "content", options } } },
-        { "cookie", { { "content", cred } } }
+        { "cookie", { { "content", cred } } },
+        { "data", true }
     });
 }

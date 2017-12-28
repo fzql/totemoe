@@ -38,6 +38,7 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT("LiveEndPoint", "roomAnchor", "/live_user/v1/UserInfo/get_anchor_in_room");
         SET_DEFAULT("LiveEndPoint", "roomRecentChat", "/ajax/msg");
         SET_DEFAULT("LiveEndPoint", "userSendToRoom", "/msg/send");
+        SET_DEFAULT("LiveEndPoint", "signInInfo", "/sign/GetSignInfo");
         // [WebSocketEndPoint]
         SET_DEFAULT("WebSocketEndPoint", "connect", "/sub");
         // [RoomServer]

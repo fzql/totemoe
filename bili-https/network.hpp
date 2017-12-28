@@ -6,11 +6,6 @@
 #include <string>
 #include <curl/curl.h>
 
-#ifdef _DEBUG
-#include <fstream>
-#define TURN_ON_DUMPS
-#endif
-
 static char errorBuffer[CURL_ERROR_SIZE];
 static std::string buffer;
 
@@ -72,12 +67,8 @@ int my_trace(CURL *handle, curl_infotype type,
     (void)handle; /* prevent compiler warning */
     (void)userp;
 
-    std::ofstream file;
     switch (type) {
     case CURLINFO_TEXT:
-        file.open("requests.log", std::ofstream::out | std::ofstream::app);
-        file << data << std::endl;
-        file.close();
     default: /* in case a new one is introduced to shock us */
         return 0;
 
@@ -100,10 +91,6 @@ int my_trace(CURL *handle, curl_infotype type,
         text = "<= Recv SSL data";
         break;
     }
-
-    file.open("requests.log", std::ofstream::out | std::ofstream::app);
-    file << text << "\n" << data << std::endl;
-    file.close();
 
     return 0;
 }
@@ -142,7 +129,8 @@ static std::string toCookieFields(json const &data)
 }
 
 // libcurl connection initialization
-static bool initHttpsGet(CURL *&conn, const char *url)
+static bool initHttpsGet(CURL *&conn, const char *url,
+    json const &options = json::object())
 {
     CURLcode code;
 
@@ -163,6 +151,21 @@ static bool initHttpsGet(CURL *&conn, const char *url)
     std::string caPath = Bili::Settings::File::Get("Security", "liveCertificateChain");
     code = curl_easy_setopt(conn, CURLOPT_CAINFO, caPath.c_str());
 
+    std::string completeURL = url;
+
+    if (options.find("post") != options.end())
+    {
+        completeURL += "?";
+        completeURL += options["post"].get<std::string>();
+    }
+
+    if (options.find("cookie") != options.end())
+    {
+        std::string content = options["cookie"];
+        content = "l=v; fts=1440723789; pgv_pvi=4705329152; _qddaz=QD.5g8jak.ir9its.itr7dctx; rpdid=owkmmloqxqdoplqqlwxxw; LIVE_BUVID=1c8e5fa964899eb51d8bcc2a8c977498; LIVE_BUVID__ckMd5=d7b5a404c7d57d77; sid=a571ix2g; UM_distinctid=15e670fde8870-0f95dbeec4947d-e313761-144000-15e670fde8991; uTZ=360; buvid3=FE399F26-4DE9-4C57-AD3D-88FB99A705FC4387infoc; biliMzIsnew=1; biliMzTs=0; finger=edc6ecda; im_seqno_4278633=68403; DedeUserID=4278633; DedeUserID__ckMd5=a185c69d095516bd; SESSDATA=d3411f47%2C1516347349%2Cabb243a5; bili_jct=45d84c2100b3399aaff81c8aaf59075a; Hm_lvt_8a6e55dbd2870f0f5bc9194cddf32a02=1513490311,1513564826,1513724785,1513792102; _dfcaptcha=f34e57f27ca5eb78751e2508445c2d5f; Hm_lpvt_8a6e55dbd2870f0f5bc9194cddf32a02=1513802426";
+        code = curl_easy_setopt(conn, CURLOPT_COOKIE, content.c_str());
+    }
+
     code = curl_easy_setopt(conn, CURLOPT_ERRORBUFFER, errorBuffer);
     if (code != CURLE_OK)
     {
@@ -170,7 +173,7 @@ static bool initHttpsGet(CURL *&conn, const char *url)
         // return false;
     }
 
-    code = curl_easy_setopt(conn, CURLOPT_URL, url);
+    code = curl_easy_setopt(conn, CURLOPT_URL, completeURL.c_str());
     if (code != CURLE_OK)
     {
         // fprintf(stderr, "Failed to set URL [%s]\n", errorBuffer);
@@ -202,15 +205,19 @@ static bool initHttpsGet(CURL *&conn, const char *url)
 }
 
 
-static std::string curlHttpsGet(std::string const &api, json const &data = json::object())
+static json curlHttpsGet(std::string const &api,
+    json const &options = json::object())
 {
     bool room_invalid = false;
     std::string result;
+    json stringOptions;
+    json parsedResult, returnValue;
 
     CURL *conn = NULL;
     CURLcode code;
 
     std::string url = api;
+    /*
     if (data.is_object())
     {
         if (data.cbegin() != data.cend())
@@ -219,8 +226,55 @@ static std::string curlHttpsGet(std::string const &api, json const &data = json:
             url += toPostFields(data);
         }
     }
+    */
 
-    if (!initHttpsGet(conn, url.c_str()))
+    if (options.find("post") != options.end())
+    {
+        if (options["post"].is_object())
+        {
+            std::string content = toPostFields(options["post"]["content"]);
+            bool escape = options["post"].find("escape") != options["post"].end();
+            if (escape)
+            {
+                char *output = curl_easy_escape(conn, content.c_str(), content.length());
+                if (output)
+                {
+                    content.assign(output);
+                    curl_free(output);
+                }
+            }
+            stringOptions["post"] = content;
+        }
+        else
+        {
+            stringOptions["post"] = options["post"].dump();
+        }
+    }
+
+    if (options.find("cookie") != options.end())
+    {
+        if (options["cookie"].is_object())
+        {
+            std::string content = toCookieFields(options["cookie"]["content"]);
+            bool escape = options["cookie"].find("escape") != options["cookie"].end();
+            if (escape)
+            {
+                char *output = curl_easy_escape(conn, content.c_str(), content.length());
+                if (output)
+                {
+                    content.assign(output);
+                    curl_free(output);
+                }
+            }
+            stringOptions["cookie"] = content;
+        }
+        else
+        {
+            stringOptions["cookie"] = options["cookie"].dump();
+        }
+    }
+
+    if (!initHttpsGet(conn, url.c_str(), stringOptions))
     {
     }
     else
@@ -238,16 +292,49 @@ static std::string curlHttpsGet(std::string const &api, json const &data = json:
             file.close();
 #endif
             result = buffer;
+            if (options.find("data") != options.end() && options["data"] == true)
+            {
+                try
+                {
+                    parsedResult = json::parse(result);
+                    if (parsedResult["code"] == 0 && (
+                        parsedResult["msg"] == "success" ||
+                        parsedResult["msg"] == "ok" ||
+                        parsedResult["msg"] == ""))
+                    {
+                        returnValue = parsedResult["data"];
+                    }
+                    else
+                    {
+                        returnValue = {
+                            { "error", {
+                                { "code", parsedResult["code"] },
+                                { "message", parsedResult["msg"] }
+                            } }
+                        };
+                    }
+                }
+                catch (...)
+                {
+                    returnValue = result;
+                }
+            }
+            else
+            {
+                returnValue = result;
+            }
         }
         curl_easy_cleanup(conn);
         buffer.clear();
     }
 
-    return result;
+    return returnValue;
 }
 
+/*
 // libcurl retrieve room data
-static json curlHttpsGet(std::string const &api, ROOM roomid, json const &data)
+static json curlHttpsGet(std::string const &api, ROOM roomid,
+    json const &options = json::object())
 {
     bool room_invalid = false;
     json result;
@@ -333,6 +420,7 @@ static json curlHttpsGet(std::string const &api, ROOM roomid, json const &data)
 #endif
     return result;
 }
+*/
 
 // libcurl connection initialization
 static bool initHttpsPost(CURL *&conn, const char *url,
@@ -420,15 +508,15 @@ static bool initHttpsPost(CURL *&conn, const char *url,
 }
 
 // libcurl retrieve room data
-static json curlHttpsPost(std::string const &api, ROOM roomid,
+static json curlHttpsPost(std::string const &api,
     json const &options = json::object())
 {
     bool room_invalid = false;
     json stringOptions;
-    json result;
+    std::string result;
+    json parsedResult, returnValue;
     json response;
 
-    room_invalid |= roomid <= 0;
     if (!room_invalid)
     {
         CURL *conn = NULL;
@@ -497,31 +585,47 @@ static json curlHttpsPost(std::string const &api, ROOM roomid,
 
         if (!initHttpsPost(conn, url.c_str(), stringOptions))
         {
-            result["error"] = "Connection initialization failed";
         }
         else
         {
             code = curl_easy_perform(conn);
             if (code != CURLE_OK)
             {
-                result["error"] = "Failed to get \"" + url + "\"";
             }
             else
             {
-#ifdef TURN_ON_DUMPS
-                std::ofstream file;
-                file.open("buffer.log");
-                file << buffer << std::endl;
-                file.close();
-#endif
-                response = json::parse(buffer);
-#ifdef TURN_ON_DUMPS
-                file.open("dump.log");
-                file << response.dump(4) << std::endl;
-                file.close();
-#endif
-                room_invalid |= !(response["code"] == 0);
-                room_invalid |= !(response["msg"] == "success" || response["msg"] == "ok" || response["msg"] == "");
+                result = buffer;
+                if (options.find("data") != options.end() && options["data"] == true)
+                {
+                    try
+                    {
+                        parsedResult = json::parse(result);
+                        if (parsedResult["code"] == 0 && (
+                            parsedResult["msg"] == "success" ||
+                            parsedResult["msg"] == "ok" ||
+                            parsedResult["msg"] == ""))
+                        {
+                            returnValue = parsedResult["data"];
+                        }
+                        else
+                        {
+                            returnValue = {
+                                { "error",{
+                                    { "code", parsedResult["code"] },
+                                    { "message", parsedResult["msg"] }
+                                } }
+                            };
+                        }
+                    }
+                    catch (...)
+                    {
+                        returnValue = result;
+                    }
+                }
+                else
+                {
+                    returnValue = result;
+                }
             }
             curl_easy_cleanup(conn);
             buffer.clear();
@@ -529,19 +633,5 @@ static json curlHttpsPost(std::string const &api, ROOM roomid,
     }
 
     // If the roomid is invalid, return error code.
-    if (room_invalid)
-    {
-        result = "{\"error\":\"invalid roomid\"}"_json;
-    }
-    else
-    {
-        result = response["data"];
-    }
-#ifdef TURN_ON_DUMPS
-    std::ofstream file;
-    file.open("result.log");
-    file << result.dump(4) << std::endl;
-    file.close();
-#endif
-    return result;
+    return returnValue;
 }
