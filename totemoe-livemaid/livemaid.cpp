@@ -9,8 +9,11 @@
 // Current instance.
 HINSTANCE hInst;
 
+// Controller
+Controller *pCtrl;
+
 // Forward declarations of functions included in this code module:
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
@@ -92,11 +95,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             {
                 return -1;
             }
-            // if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-            if (!TranslateAccelerator((HWND)mainWindow, hAccelTable, &msg))
+            if (!(pCtrl && PropSheet_IsDialogMessage(pCtrl->getPropertySheet(), &msg)))
             {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
+                if (!TranslateAccelerator((HWND)mainWindow, hAccelTable, &msg))
+                {
+                    TranslateMessage(&msg);
+                    DispatchMessage(&msg);
+                }
+            }
+            else if (pCtrl && PropSheet_GetCurrentPageHwnd(pCtrl->getPropertySheet()) == NULL)
+            {
+                ::DestroyWindow(pCtrl->getPropertySheet());
+                Bili::Settings::File::Save();
             }
         }
         return (int)msg.wParam;
@@ -130,7 +140,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    Controller *pCtrl = WinGetLong<Controller *>(hWnd);
+    pCtrl = WinGetLong<Controller *>(hWnd);
+
+    /*
+    if (pCtrl != nullptr && PropSheet_IsDialogMessage(pCtrl->getPropSheetHandle(), )
+    {
+
+    }
+    */
 
     switch (message)
     {

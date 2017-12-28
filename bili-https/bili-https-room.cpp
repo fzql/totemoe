@@ -37,9 +37,12 @@ json Bili::Room::GetDanmakuServer(ROOM roomid)
 
     auto url = Bili::Settings::GetAPI("live", "player");
     std::string response = curlHttpsGet(url, {
-        { "id", "cid:" + std::to_string(roomid) },
-        { "platform", "pc" },
-        { "player_type", "web" }
+        { "post", { { "content" , {
+            { "id", "cid:" + std::to_string(roomid) },
+            { "platform", "pc" },
+            { "player_type", "web" }
+            } }}
+        }
     });
     std::regex rSimpleTag = std::regex("<(.*?)>(.*?)<\\/(?:.*?)>");
     std::sregex_iterator next(response.begin(), response.end(), rSimpleTag);
@@ -59,36 +62,40 @@ json Bili::Room::GetDanmakuServer(ROOM roomid)
         next++;
     }
     return result;
-}
+    }
 
-json Bili::Room::GetResolve(ROOM roomid)
-{
-    auto url = Bili::Settings::GetAPI("live", "roomInit");
-    return curlHttpsGet(url, roomid, {
-        { "id", roomid }
-    });
-}
+    json Bili::Room::GetResolve(ROOM roomid)
+    {
+        auto url = Bili::Settings::GetAPI("live", "roomInit");
+        return curlHttpsGet(url, {
+            { "post", { { "content", { { "id", roomid } } } } },
+            { "data", true }
+        });
+    }
 
-json Bili::Room::GetInfo(ROOM roomid)
-{
-    auto url = Bili::Settings::GetAPI("live", "roomInfo");
-    return curlHttpsGet(url, roomid, {
-        { "room_id", roomid }
-    });
-}
+    json Bili::Room::GetInfo(ROOM roomid)
+    {
+        auto url = Bili::Settings::GetAPI("live", "roomInfo");
+        return curlHttpsGet(url, {
+            { "post", { { "content", { { "room_id", roomid } } } } },
+            { "data", true }
+        });
+    }
 
-json Bili::Room::GetAnchorInfo(ROOM roomid)
-{
-    auto url = Bili::Settings::GetAPI("live", "roomAnchor");
-    return curlHttpsGet(url, roomid, {
-        { "roomid", roomid }
-    });
-}
+    json Bili::Room::GetAnchorInfo(ROOM roomid)
+    {
+        auto url = Bili::Settings::GetAPI("live", "roomAnchor");
+        return curlHttpsGet(url, {
+            { "post", { { "content", { { "roomid", roomid } } } } },
+            { "data", true }
+        });
+    }
 
-json Bili::Room::GetRecentChat(ROOM roomid)
-{
-    auto url = Bili::Settings::GetAPI("live", "roomRecentChat");
-    return curlHttpsPost(url, roomid, {
-        { "post", { { "content", { { "roomid", roomid } } } } }
-    });
-}
+    json Bili::Room::GetRecentChat(ROOM roomid)
+    {
+        auto url = Bili::Settings::GetAPI("live", "roomRecentChat");
+        return curlHttpsPost(url, {
+            { "post", { { "content", { { "roomid", roomid } } } } },
+            { "data", true }
+        });
+    }
