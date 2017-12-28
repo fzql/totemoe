@@ -3,6 +3,7 @@
 
 #include "stdafx.hpp"
 #include "bili-settings.hpp"
+#include <codecvt>
 
 #define SET_DEFAULT(section, key, value) \
     if (result != SI_FAIL) { result = SetDefault(section, key, value); }
@@ -20,10 +21,10 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT("Security", "liveCertificateChain", "api.live.bilibili.com.crt");
         SET_DEFAULT("Security", "enforceHttps", "1");
         SET_DEFAULT("Security", "enableMySQL", "1");
-        // [Credentials]
-        SET_DEFAULT("Credentials", "DedeUserID", "");
-        SET_DEFAULT("Credentials", "DedeUserID__ckMd5", "");
-        SET_DEFAULT("Credentials", "SESSDATA", "");
+        // [Session]
+        SET_DEFAULT("Session", "DedeUserID", "");
+        SET_DEFAULT("Session", "DedeUserID__ckMd5", "");
+        SET_DEFAULT("Session", "SESSDATA", "");
         // [SendDanmaku]
         SET_DEFAULT("SendDanmaku", "color", "16777215");
         SET_DEFAULT("SendDanmaku", "fontsize", "25");
@@ -37,6 +38,7 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT("LiveEndPoint", "roomAnchor", "/live_user/v1/UserInfo/get_anchor_in_room");
         SET_DEFAULT("LiveEndPoint", "roomRecentChat", "/ajax/msg");
         SET_DEFAULT("LiveEndPoint", "userSendToRoom", "/msg/send");
+        SET_DEFAULT("LiveEndPoint", "signInInfo", "/sign/GetSignInfo");
         // [WebSocketEndPoint]
         SET_DEFAULT("WebSocketEndPoint", "connect", "/sub");
         // [RoomServer]
@@ -79,11 +81,30 @@ char const *Bili::Settings::File::Get(
     return ini.GetValue(section.c_str(), key.c_str(), value);
 }
 
+std::wstring Bili::Settings::File::GetW(
+    std::string const &section, std::string const &key, char const *value)
+{
+    std::string bytes = Bili::Settings::File::Get(section, key, value);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(bytes);
+}
+
 SI_Error Bili::Settings::File::Set(
     std::string const &section, std::string const &key, char const *value)
 {
     return ini.SetValue(section.c_str(), key.c_str(), value);
 }
+
+SI_Error Bili::Settings::File::SetW(
+    std::string const &section, std::string const &key, std::wstring const &value)
+{
+    SI_Error result;
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::string bytes = converter.to_bytes(value);
+    result = Bili::Settings::File::Set(section, key, bytes.c_str());
+    return result;
+}
+
 
 SI_Error Bili::Settings::File::Save()
 {

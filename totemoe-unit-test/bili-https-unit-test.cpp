@@ -39,8 +39,10 @@ namespace totemoeunittest
                 Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
 #endif
                 // Validate the data object.
-                std::string error = info["error"];
-                Assert::AreEqual("invalid roomid", error.c_str());
+                json const &error = info["error"];
+                Assert::AreNotEqual(0, error["code"].get<int>());
+                std::string message = error["message"].get<std::string>();
+                Assert::IsFalse(message.empty());
             }
 
             // Testing invalid roomid.
@@ -56,8 +58,10 @@ namespace totemoeunittest
                 Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
 #endif
                 // Validate the data object.
-                std::string error = info["error"];
-                Assert::AreEqual("invalid roomid", error.c_str());
+                json const &error = info["error"];
+                Assert::AreNotEqual(0, error["code"].get<int>());
+                std::string message = error["message"].get<std::string>();
+                Assert::IsFalse(message.empty());
             }
 
             // Testing invalid roomid.
@@ -73,8 +77,10 @@ namespace totemoeunittest
                 Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
 #endif
                 // Validate the data object.
-                std::string error = info["error"];
-                Assert::AreEqual("invalid roomid", error.c_str());
+                json const &error = info["error"];
+                Assert::AreNotEqual(0, error["code"].get<int>());
+                std::string message = error["message"].get<std::string>();
+                Assert::IsFalse(message.empty());
             }
 
             // Testing invalid roomid.
@@ -90,8 +96,10 @@ namespace totemoeunittest
                 Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
 #endif
                 // Validate the data object.
-                std::string error = info["error"];
-                Assert::AreEqual("invalid roomid", error.c_str());
+                json const &error = info["error"];
+                Assert::AreNotEqual(0, error["code"].get<int>());
+                std::string message = error["message"].get<std::string>();
+                Assert::IsFalse(message.empty());
             }
         }
 
@@ -235,6 +243,18 @@ namespace totemoeunittest
             }
         }
 
+        TEST_METHOD(UserGetSignInInfo)
+        {
+            Bili::User::Credentials cred = Bili::Settings::GetCredentials();
+            auto response = Bili::User::GetSignInInfo(cred);
+            Assert::IsTrue(response.find("error") == response.end());
+
+            std::string dump = response.dump();
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            std::wstring wide = converter.from_bytes(response.dump());
+            Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
+        }
+
         TEST_METHOD(UserSendMessage)
         {
             Bili::User::Credentials cred = Bili::Settings::GetCredentials();
@@ -242,7 +262,12 @@ namespace totemoeunittest
             options.roomid = 364513;
             options.msg = L"testing\na\nreturn";
             options.prepare();
-            auto response = Bili::User::SendRoomChat(cred, 364513, options);
+            auto response = Bili::User::SendRoomChat(cred, options);
+#ifdef _DEBUG
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            std::wstring wide = converter.from_bytes(response.dump());
+            Logger::WriteMessage(MSG(__FUNCTION__ << " : " << wide));
+#endif
             Assert::IsTrue(response.is_array());
             Assert::IsTrue(response.size() == 0);
         }
