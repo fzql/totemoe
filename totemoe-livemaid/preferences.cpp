@@ -2,42 +2,6 @@
 #include "stdafx.h"
 #include "controller.hpp"
 #include "bili-https/bili-https.hpp"
-
-INT_PTR CALLBACK PreferencesDlgProc(HWND hDlg, UINT message, LPARAM lParam)
-{
-    switch (message)
-    {
-    case PSCB_INITIALIZED:
-        return FALSE;
-
-    case WM_COMMAND:
-        break;
-
-    case PSCB_BUTTONPRESSED:
-    {
-        switch (lParam)
-        {
-        case PSBTN_OK:
-
-            // Bili::Settings::File::Save();
-            ::MessageBox(hDlg, L"LOL", L"FAK", MB_OK);
-            break;
-        case PSBTN_CANCEL:
-            break;
-        case PSBTN_APPLYNOW:
-            break;
-        case PSBTN_FINISH:
-            break;
-        }
-    }
-    break;
-
-    case WM_DESTROY:
-        return TRUE;
-    }
-    return DefWindowProc(hDlg, message, NULL, lParam);
-}
-
 INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)

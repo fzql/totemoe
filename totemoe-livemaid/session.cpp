@@ -5,7 +5,8 @@
 #include <codecvt>
 
 MessageSession::MessageSession() :
-    m_bAutoReconnect(true), m_bStopThread(true), m_nNextMessageID(0)
+    m_bAutoReconnect(true), m_bStopThread(true), m_bLockVScroll(false),
+    m_nNextMessageID(0)
 {
 }
 
@@ -123,7 +124,7 @@ void MessageSession::disconnect()
     }
     std::condition_variable condition;
     std::unique_lock<std::mutex> lock(m_mutex_message);
-    condition.wait(lock, [this](){
+    condition.wait(lock, [this]() {
         auto const &messages = m_room.retrieve();
         if (!messages.empty())
         {
@@ -142,6 +143,45 @@ void MessageSession::disconnect()
         }
         return !messages.empty();
     });
+}
+
+void MessageSession::setFilter(std::wstring const &keyword)
+{
+    m_keyword = keyword;
+    m_vFiltered.clear();
+    if (m_keyword.length() > 0)
+    {
+        for (size_t index = 0; index < m_vDisplay.size(); ++index)
+        {
+            bool match = false;
+            for (size_t col = 0; !match && col < 9; ++col)
+            {
+                match = m_vDisplay[index][col].find(m_keyword) != std::wstring::npos;
+            }
+            if (match)
+            {
+                m_vFiltered.push_back(index);
+            }
+        }
+    }
+    if (m_pTableListView != nullptr)
+    {
+        HWND hListView = m_pTableListView->getHandle();
+        if (m_vFiltered.empty())
+        {
+            ListView_SetItemCountEx(hListView, m_vDisplay.size(),
+                LVSICF_NOINVALIDATEALL);
+        }
+        else
+        {
+            ListView_SetItemCountEx(hListView, m_vFiltered.size(),
+                LVSICF_NOINVALIDATEALL);
+        }
+        if (!m_bLockVScroll)
+        {
+            m_pTableListView->scrollToBottom();
+        }
+    }
 }
 
 void MessageSession::parseMessage(json const &object)
@@ -265,24 +305,37 @@ void MessageSession::parseMessage(json const &object)
             display[7] = wss.str();
         }
     }
+    m_vDisplay.push_back(display);
+
+    if (m_keyword.length() > 0)
+    {
+        bool match = false;
+        for (size_t col = 0; !match && col < 9; ++col)
+        {
+            match = display[col].find(m_keyword) != std::wstring::npos;
+        }
+        if (match)
+        {
+            m_vFiltered.push_back(m_vDisplay.size() - 1);
+        }
+    }
+
     if (m_pTableListView != nullptr)
     {
-        m_pTableListView->push_back(display);
-    }
-    m_vDisplay.push_back(display);
-    /*
-        if (vProtocolName.empty())
-    {
-        std::vector<int> resources({
-            IDS_PROTOCOL_UNKNOWN, IDS_PROTOCOL_PORT,
-            IDS_PROTOCOL_DANMAKU, IDS_PROTOCOL_GIFTING,
-            IDS_PROTOCOL_ANNOUNCEMENT
-        });
-        for (auto &resource : resources)
+        HWND hListView = m_pTableListView->getHandle();
+        if (m_vFiltered.empty())
         {
-            vProtocolName.emplace_back(
-                (LPCWSTR)ResourceString(I18N::GetHandle(), resource));
+            ListView_SetItemCountEx(hListView, m_vDisplay.size(),
+                LVSICF_NOINVALIDATEALL);
         }
-    };
-*/
+        else
+        {
+            ListView_SetItemCountEx(hListView, m_vFiltered.size(),
+                LVSICF_NOINVALIDATEALL);
+        }
+        if (!m_bLockVScroll)
+        {
+            m_pTableListView->scrollToBottom();
+        }
+    }
 }

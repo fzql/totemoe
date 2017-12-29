@@ -48,7 +48,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         WinMainMaker mainWindow(mainWndClass, IDS_APP_TITLE);
         mainWindow.Create();
         mainWindow.Show(nCmdShow);
-        
+
         // Load acceleration table.
         HACCEL hAccelTable =
             LoadAccelerators(I18N::GetHandle(), MAKEINTRESOURCE(IDR_ACCELERATOR));
@@ -170,6 +170,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return -1;
         }
         return 0;
+    case WM_NOTIFY:
+        pCtrl->notify((LPNMHDR)lParam);
+        break;
     case WM_SIZE:
         pCtrl->size(LOWORD(lParam), HIWORD(lParam));
         break;
@@ -187,6 +190,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DISCONNECT:
         pCtrl->disconnect();
+        break;
+    case WM_COMMANDLINE_ENTER:
+        pCtrl->submit();
+        break;
+    case WM_COMMANDTYPE_CYCLE:
+        pCtrl->cycleMode(lParam);
+        break;
+    case WM_GET_SESSIONCOLUMN:
+        pCtrl->getActiveSessionColumn((int)wParam, (int)lParam);
         break;
     case WM_INITMENUPOPUP:
         pCtrl->initMenu((HMENU)wParam);

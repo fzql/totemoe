@@ -23,9 +23,25 @@ public:
 
     void disconnect();
 
+    LPCWSTR getColumn(int row, int col) const
+    { 
+        LPCWSTR result;
+        if (m_vFiltered.empty())
+        {
+            result = m_vDisplay[row][col].c_str();
+        }
+        else
+        {
+            result = m_vDisplay[m_vFiltered[row]][col].c_str();
+        }
+        return result;
+    }
+
     ROOM getRoomID() const { return m_room.getRoomID(); }
 
     void reconnect();
+
+    void setFilter(std::wstring const &keyword = std::wstring());
 
     void setStatusBar(StatusBar &statusBar)
     {
@@ -52,6 +68,8 @@ private:
     TableListView *m_pTableListView;
 
     Bili::Server::Room m_room;
+    // Used to filter displayed messages.
+    std::wstring m_keyword;
 
     std::thread m_thread;
 
@@ -61,5 +79,9 @@ private:
 
     std::vector<std::array<std::wstring, 9>> m_vDisplay;
 
+    std::vector<int> m_vFiltered;
+
     long m_nNextMessageID;
+
+    bool m_bLockVScroll;
 };
