@@ -269,6 +269,8 @@ BEGIN
     IDS_COMMANDTYPE_DANMAKU "Send"
     IDS_COMMANDTYPE_BANUSER "Ban"
     IDS_COMMANDTYPE_FILTERSTRING "Filter"
+    IDS_COMMANDLINE_DANMKAU_SUCCESS "Danmaku successfully sent!"
+    IDS_COMMANDLINE_DANMKAU_FAIL "Failed to send. Reason: "
 END
 
 #endif    // English (United States) resources

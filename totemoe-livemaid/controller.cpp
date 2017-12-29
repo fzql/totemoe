@@ -38,6 +38,7 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
         ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_BANUSER));
     m_commandType.add((LPCWSTR)
         ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING));
+    m_commandType.setSelection(0);
     m_commandLine.show();
     // Initialize chat room.
     m_session.setTableListView(m_listView);
@@ -199,8 +200,7 @@ void Controller::showPropertySheet()
     // Initialize property sheet header.
     PROPSHEETHEADER propSheetHeader;
     propSheetHeader.dwSize = sizeof(PROPSHEETHEADER);
-    propSheetHeader.dwFlags = PSH_MODELESS | PSH_USECALLBACK;
-    propSheetHeader.pfnCallback = PreferencesDlgProc;
+    propSheetHeader.dwFlags = PSH_MODELESS;
     propSheetHeader.hwndParent = m_hWnd;
     // propSheetHeader.hInstance = I18N::GetHandle();
     propSheetHeader.nPages = propSheetPages.size();
@@ -244,16 +244,47 @@ void Controller::size(int cx, int cy)
 
 void Controller::submit()
 {
-    Bili::User::Credentials cred = Bili::Settings::GetCredentials();
-    Bili::User::SendOptions options;
-    options.roomid = m_session.getRoomID();
-    options.msg = m_commandLine.getContent();
-    options.prepare();
-    auto response = Bili::User::SendRoomChat(cred, options);
-    std::string lol = response.dump();
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring yup = converter.from_bytes(lol);
-    m_statusBar.setText(0, yup);
+    std::wstring selection = m_commandType.getText();
+    std::wstring content = m_commandLine.getContent();
+
+    // Ignore empty command line.
+    if (content.empty())
+    {
+        return;
+    }
+
+    // Different action based on different command type.
+    if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_DANMAKU))
+    {
+        Bili::User::Credentials cred = Bili::Settings::GetCredentials();
+        Bili::User::SendOptions options;
+        options.roomid = m_session.getRoomID();
+        options.msg = content;
+        options.prepare();
+
+        auto response = Bili::User::SendRoomChat(cred, options);
+        if (response.is_array())
+        {
+            ResourceString success(I18N::GetHandle(), IDS_COMMANDLINE_DANMKAU_SUCCESS);
+            m_statusBar.setText(0, (LPCWSTR)success);
+            m_commandLine.clear();
+        }
+        else
+        {
+            std::wstringstream wss;
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            ResourceString failure(I18N::GetHandle(), IDS_COMMANDLINE_DANMKAU_FAIL);
+            wss << (LPCWSTR)failure << converter.from_bytes(response.dump());
+            m_statusBar.setText(0, wss.str());
+            ::MessageBeep(MB_ICONERROR);
+        }
+    }
+    else if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_BANUSER))
+    {
+    }
+    else if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING))
+    {
+    }
 }
 
 

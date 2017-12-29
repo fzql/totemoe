@@ -410,6 +410,18 @@ public:
     {
         ::SendMessage(m_hWnd, CB_ADDSTRING, (WPARAM)NULL, (LPARAM)content.c_str());
     }
+
+    void setSelection(int index)
+    {
+        ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)index, NULL);
+    }
+
+    std::wstring getText()
+    {
+        WCHAR szContent[MAX_LOADSTRING];
+        ::GetWindowText(m_hWnd, szContent, MAX_LOADSTRING);
+        return std::wstring(szContent);
+    }
 };
 
 LRESULT CALLBACK commandEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -448,6 +460,11 @@ public:
         WCHAR szContent[MAX_LOADSTRING];
         GetWindowText(m_hWnd, szContent, MAX_LOADSTRING);
         return std::wstring(szContent);
+    }
+
+    void clear()
+    {
+        ::SendMessage(m_hWnd, WM_SETTEXT, NULL, (LPARAM)L"");
     }
 
 public:

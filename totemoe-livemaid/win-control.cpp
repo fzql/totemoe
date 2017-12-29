@@ -19,6 +19,15 @@ LRESULT CALLBACK commandEditProc(
             return TRUE;
         }
         }
+
+    case WM_CHAR:
+        // To stop single-line edit from beeping upon return.
+        // Reference: https://stackoverflow.com/a/3590126/1377770
+        if (wParam == VK_RETURN)
+        {
+            return FALSE;
+        }
+
     default:
         return ::CallWindowProc(EditControl::defaultEditProc,
             hWnd, message, wParam, lParam);
