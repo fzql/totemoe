@@ -90,6 +90,8 @@ public:
 
     void initMenu(HMENU hMenu);
 
+    void cycleMode(LPARAM lParam);
+
     void paint();
     
     void setRoom(ROOM room);

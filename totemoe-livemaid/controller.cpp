@@ -17,7 +17,7 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
     m_statusBar.setText(1, L"Cells");
     m_statusBar.setText(2, L"Text");
     m_statusBar.show();
-    // Initialize header control.
+    // Initialize list view control.
     m_listView.setColumns({
         (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_ROOM),
         (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_MSGID),
@@ -30,7 +30,10 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
         (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_LIVEMAID_TRIGGER),
     }, { 80, 80, 150, 40, 80, 40, 180, 300, 40 });
     m_listView.show();
-    // Initialize the command edit control and combo box.
+    // HWND header = m_listView.getHeader();
+    // LONG_PTR styles = GetWindowLongPtr(header, GWL_STYLE);
+    // SetWindowLongPtr(header, GWL_STYLE, styles | HDS_FILTERBAR | HDS_NOSIZING);
+    // Initialize command line.
     m_commandType.show();
     m_commandType.add((LPCWSTR)
         ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_DANMAKU));
@@ -157,6 +160,23 @@ void Controller::initMenu(HMENU hMenu)
             }
             break;
         }
+    }
+}
+
+void Controller::cycleMode(LPARAM lParam)
+{
+    int action = lParam;
+    switch (action)
+    {
+    case -1:
+        m_commandType.setSelectionNext();
+        break;
+    case 0:
+        m_commandType.setSelection(0);
+        break;
+    case 1:
+        m_commandType.setSelectionPrev();
+        break;
     }
 }
 

@@ -198,6 +198,11 @@ public:
     }
 public:
 
+    HWND getHeader()
+    {
+        return ListView_GetHeader(m_hWnd);
+    }
+
     int getSelectedCount()
     {
         return ListView_GetSelectedCount(m_hWnd);
@@ -416,6 +421,28 @@ public:
         ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)index, NULL);
     }
 
+    void setSelectionNext()
+    {
+        int nCount = ::SendMessage(m_hWnd, CB_GETCOUNT, NULL, NULL);
+        if (nCount > 0)
+        {
+            int iItem = ::SendMessage(m_hWnd, CB_GETCURSEL, NULL, NULL);
+            iItem = (iItem + 1) % nCount;
+            ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)iItem, NULL);
+        }
+    }
+
+    void setSelectionPrev()
+    {
+        int nCount = ::SendMessage(m_hWnd, CB_GETCOUNT, NULL, NULL);
+        if (nCount > 0)
+        {
+            int iItem = ::SendMessage(m_hWnd, CB_GETCURSEL, NULL, NULL);
+            iItem = (iItem + (nCount - 1)) % nCount;
+            ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)iItem, NULL);
+        }
+    }
+
     std::wstring getText()
     {
         WCHAR szContent[MAX_LOADSTRING];
@@ -424,7 +451,8 @@ public:
     }
 };
 
-LRESULT CALLBACK commandEditProc(HWND wnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK commandEditProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 class EditControl : public WinControl
 {

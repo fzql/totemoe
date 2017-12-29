@@ -191,6 +191,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_COMMANDLINE_ENTER:
         pCtrl->submit();
         break;
+    case WM_COMMANDTYPE_CYCLE:
+        pCtrl->cycleMode(lParam);
+        break;
     case WM_INITMENUPOPUP:
         pCtrl->initMenu((HMENU)wParam);
         break;

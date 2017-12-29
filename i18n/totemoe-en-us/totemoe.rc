@@ -60,11 +60,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Accelerator
 //
 
-IDR_ACCELERATOR ACCELERATORS
-BEGIN
-    "C",            IDM_DANMAKU_COPYSELECTED, VIRTKEY, CONTROL, NOINVERT
-    "A",            IDM_DANMAKU_SELECTALL,  VIRTKEY, CONTROL, NOINVERT
-END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -211,8 +206,8 @@ BEGIN
     END
     POPUP "&Danmaku"
     BEGIN
-        MENUITEM "Copy Selected\tCtrl+C",       IDM_DANMAKU_COPYSELECTED, INACTIVE
-        MENUITEM "Select All\tCtrl+A",          IDM_DANMAKU_SELECTALL
+        MENUITEM "Copy Selected",               IDM_DANMAKU_COPYSELECTED, INACTIVE
+        MENUITEM "Select All",                  IDM_DANMAKU_SELECTALL
     END
     POPUP "&Help"
     BEGIN
