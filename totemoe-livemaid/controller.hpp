@@ -86,9 +86,15 @@ public:
 
     void disconnect();
 
+    LPCWSTR getActiveSessionColumn(int row, int col);
+
     HWND getPropertySheet() const { return m_hPropSheet; }
 
     void initMenu(HMENU hMenu);
+
+    void notify(LPNMHDR lpNMHdr);
+
+    void cycleMode(LPARAM lParam);
 
     void paint();
     
@@ -97,6 +103,8 @@ public:
     void showPropertySheet();
     
     void size(int x, int y);
+
+    void submit();
 private:
 
     static HMODULE  hI18N;
@@ -113,6 +121,10 @@ private:
 
     TableListView   m_listView;
 
+    ComboBox        m_commandType;
+
+    EditControl     m_commandLine;
+
     MessageSession  m_session;
 
     HWND            m_hPropSheet;
@@ -123,8 +135,6 @@ private:
 INT_PTR CALLBACK AboutDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 INT_PTR CALLBACK ConnectDlgProc(HWND, UINT, WPARAM, LPARAM);
-
-INT_PTR CALLBACK PreferencesDlgProc(HWND hDlg, UINT message, LPARAM lParam);
 
 INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 

@@ -12,6 +12,8 @@
 #define IDC_STATUSBAR                   130
 #define IDC_LISTVIEW                    131
 #define IDC_STATIC                      -1
+#define IDC_COMMANDLINE_COMBO           1013
+#define IDC_COMMANDLINE_EDIT            1014
 
 // Next default values for new objects
 // 

@@ -29,15 +29,20 @@ public:
         return m_hWnd;
     }
 
-    LONG getHeight()
+    virtual LONG getHeight()
     {
-        return m_nHeight;
+        RECT rect;
+        ::GetWindowRect(m_hWnd, &rect);
+        return rect.bottom - rect.top;
     }
 
-    LONG getWidth()
+    virtual LONG getWidth()
     {
-        return m_nWidth;
+        RECT rect;
+        ::GetWindowRect(m_hWnd, &rect);
+        return rect.right - rect.left;
     }
+
     void hide()
     {
         ::ShowWindow(m_hWnd, SW_HIDE);
@@ -57,6 +62,19 @@ public:
     {
         ::SetFocus(m_hWnd);
     }
+
+    virtual void setPosition(int X, int Y)
+    {
+        SetWindowPos(m_hWnd, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
+        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
+    }
+
+    virtual void setSize(int cx, int cy)
+    {
+        SetWindowPos(m_hWnd, NULL, NULL, NULL, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
+        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
+    }
+
 protected:
 
     HWND m_hWnd;
@@ -91,6 +109,8 @@ public:
         }
     }
 public:
+
+    LONG getHeight() const { return m_nHeight; }
 
     void setParts(std::vector<int> const &rights)
     {
@@ -152,16 +172,19 @@ protected:
     std::vector<std::wstring> m_vText;
 };
 
+LRESULT CALLBACK listViewProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 class TableListView : public WinControl
 {
 public:
 
     TableListView(HWND hWndParent, int id) :
-        WinControl(hWndParent, id), m_bLockVScroll(false)
+        WinControl(hWndParent, id)
     {
         m_hWnd = ::CreateWindow(WC_LISTVIEW,
             L"",
-            WS_CHILD | LVS_REPORT | LVS_EDITLABELS | LVS_SHOWSELALWAYS,
+            WS_CHILD | LVS_REPORT | LVS_EDITLABELS | LVS_SHOWSELALWAYS | LVS_OWNERDATA,
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             hWndParent,
             (HMENU)id,
@@ -175,8 +198,16 @@ public:
         }
 
         ListView_SetExtendedListViewStyleEx(m_hWnd, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+
+        defaultListViewProc = (WNDPROC)
+            ::SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, (LONG_PTR)listViewProc);
     }
 public:
+
+    HWND getHeader()
+    {
+        return ListView_GetHeader(m_hWnd);
+    }
 
     int getSelectedCount()
     {
@@ -188,40 +219,12 @@ public:
 
     }
 
-    void push_back(std::array<std::wstring, 9> const &pushes)
-    {
-        LVITEM lvItem;
-
-        // Initialize LVITEM members that are common to all items.
-        lvItem.pszText = const_cast<LPWSTR>(pushes[0].c_str());
-        lvItem.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
-        lvItem.stateMask = 0;
-        lvItem.iItem = ::SendMessage(m_hWnd, LVM_GETITEMCOUNT, 0, 0);
-        lvItem.iSubItem = 0;
-        lvItem.state = 0;
-
-        // Insert one column.
-        SendMessage(m_hWnd, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
-
-        // Initialize LVITEM members that are different for each item.
-        size_t cItems = pushes.size();
-        for (size_t index = 1; index < cItems && index < m_vColumns.size(); index++)
-        {
-            lvItem.iSubItem = index;
-            lvItem.pszText = const_cast<LPWSTR>(pushes[index].c_str());
-            SendMessage(m_hWnd, LVM_SETITEM, 0, (LPARAM)&lvItem);
-        }
-
-        if (!m_bLockVScroll)
-        {
-            scrollToBottom();
-        }
-    }
-
     void scrollToBottom()
     {
-        int nItems = ::SendMessage(m_hWnd, LVM_GETITEMCOUNT, 0, 0);
-        SendMessage(m_hWnd, LVM_ENSUREVISIBLE, nItems - 1, TRUE);
+        int nItems = ListView_GetItemCount(m_hWnd);
+        ListView_EnsureVisible(m_hWnd, nItems - 1, TRUE);
+        ListView_SetItemState(m_hWnd, -1, LVIF_STATE,
+            LVIS_SELECTED | LVIS_FOCUSED);
     }
 
     void selectAll()
@@ -350,22 +353,128 @@ public:
             }
         }
     }
+public:
 
-    void setPosition(int X, int Y)
-    {
-        SetWindowPos(m_hWnd, NULL, X, Y, NULL, NULL, SWP_NOSIZE | SWP_NOZORDER);
-        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
-    }
-
-    void setSize(int cx, int cy)
-    {
-        SetWindowPos(m_hWnd, NULL, NULL, NULL, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
-        ::SendMessage(m_hWnd, WM_SIZE, 0, 0);
-    }
-
+    static WNDPROC defaultListViewProc;
 protected:
 
     std::vector<std::wstring> m_vColumns;
+};
 
-    bool m_bLockVScroll;
+class ComboBox : public WinControl
+{
+public:
+
+    ComboBox(HWND hWndParent, int id) :
+        WinControl(hWndParent, id)
+    {
+        m_hWnd = ::CreateWindowEx(
+            WS_EX_OVERLAPPEDWINDOW,
+            WC_COMBOBOX,
+            NULL,
+            CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_SIMPLE |
+            WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            hWndParent,
+            (HMENU)id,
+            WinGetLong<HINSTANCE>(hWndParent, GWL_HINSTANCE),
+            NULL
+        );
+
+        // Reference: https://stackoverflow.com/a/6057761/1377770
+        NONCLIENTMETRICS ncm;
+        ncm.cbSize = sizeof(ncm);
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+        HFONT hDlgFont = CreateFontIndirect(&(ncm.lfMessageFont));
+        ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM)hDlgFont, TRUE);
+    }
+public:
+
+    void add(std::wstring const &content)
+    {
+        ::SendMessage(m_hWnd, CB_ADDSTRING, (WPARAM)NULL, (LPARAM)content.c_str());
+    }
+
+    void setSelection(int index)
+    {
+        ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)index, NULL);
+    }
+
+    void setSelectionNext()
+    {
+        int nCount = ::SendMessage(m_hWnd, CB_GETCOUNT, NULL, NULL);
+        if (nCount > 0)
+        {
+            int iItem = ::SendMessage(m_hWnd, CB_GETCURSEL, NULL, NULL);
+            iItem = (iItem + 1) % nCount;
+            ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)iItem, NULL);
+        }
+    }
+
+    void setSelectionPrev()
+    {
+        int nCount = ::SendMessage(m_hWnd, CB_GETCOUNT, NULL, NULL);
+        if (nCount > 0)
+        {
+            int iItem = ::SendMessage(m_hWnd, CB_GETCURSEL, NULL, NULL);
+            iItem = (iItem + (nCount - 1)) % nCount;
+            ::SendMessage(m_hWnd, CB_SETCURSEL, (WPARAM)iItem, NULL);
+        }
+    }
+
+    std::wstring getText()
+    {
+        WCHAR szContent[MAX_LOADSTRING];
+        ::GetWindowText(m_hWnd, szContent, MAX_LOADSTRING);
+        return std::wstring(szContent);
+    }
+};
+
+LRESULT CALLBACK commandEditProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+class EditControl : public WinControl
+{
+public:
+
+    EditControl(HWND hWndParent, int id) :
+        WinControl(hWndParent, id)
+    {
+        m_hWnd = ::CreateWindow(
+            WC_EDIT,
+            NULL,
+            WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+            hWndParent,
+            (HMENU)id,
+            WinGetLong<HINSTANCE>(hWndParent, GWL_HINSTANCE),
+            NULL
+        );
+
+        // Reference: https://stackoverflow.com/a/6057761/1377770
+        NONCLIENTMETRICS ncm;
+        ncm.cbSize = sizeof(ncm);
+        SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+        HFONT hDlgFont = CreateFontIndirect(&(ncm.lfMessageFont));
+        ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM)hDlgFont, TRUE);
+
+        defaultEditProc = (WNDPROC)
+            ::SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, (LONG_PTR)commandEditProc);
+    }
+
+    std::wstring getContent()
+    {
+        WCHAR szContent[MAX_LOADSTRING];
+        GetWindowText(m_hWnd, szContent, MAX_LOADSTRING);
+        return std::wstring(szContent);
+    }
+
+    void clear()
+    {
+        ::SendMessage(m_hWnd, WM_SETTEXT, NULL, (LPARAM)L"");
+    }
+
+public:
+
+    static WNDPROC defaultEditProc;
 };
