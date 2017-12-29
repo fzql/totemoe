@@ -86,9 +86,13 @@ public:
 
     void disconnect();
 
+    LPCWSTR getActiveSessionColumn(int row, int col);
+
     HWND getPropertySheet() const { return m_hPropSheet; }
 
     void initMenu(HMENU hMenu);
+
+    void notify(LPNMHDR lpNMHdr);
 
     void cycleMode(LPARAM lParam);
 
@@ -131,8 +135,6 @@ private:
 INT_PTR CALLBACK AboutDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 INT_PTR CALLBACK ConnectDlgProc(HWND, UINT, WPARAM, LPARAM);
-
-INT_PTR CALLBACK PreferencesDlgProc(HWND hDlg, UINT message, LPARAM lParam);
 
 INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 

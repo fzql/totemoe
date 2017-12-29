@@ -38,9 +38,9 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
     m_commandType.add((LPCWSTR)
         ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_DANMAKU));
     m_commandType.add((LPCWSTR)
-        ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_BANUSER));
-    m_commandType.add((LPCWSTR)
         ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING));
+    m_commandType.add((LPCWSTR)
+        ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_BANUSER));
     m_commandType.setSelection(0);
     m_commandLine.show();
     // Initialize chat room.
@@ -123,6 +123,11 @@ void Controller::disconnect()
     std::this_thread::sleep_for(500ms);
 }
 
+LPCWSTR Controller::getActiveSessionColumn(int row, int col)
+{
+    return m_session.getColumn(row, col);
+}
+
 void Controller::initMenu(HMENU hMenu)
 {
     int cMenuItems = GetMenuItemCount(hMenu);
@@ -160,6 +165,29 @@ void Controller::initMenu(HMENU hMenu)
             }
             break;
         }
+    }
+}
+
+void Controller::notify(LPNMHDR lpNMHdr)
+{
+    switch (lpNMHdr->code)
+    {
+    case LVN_GETDISPINFO:
+    {
+        NMLVDISPINFO *pdi = (NMLVDISPINFO*)lpNMHdr;
+        auto const &item = pdi->item;
+        // The ID of the item to query.
+        int itemid = item.iItem;
+        // Does the list need string information?
+        if (item.mask & LVIF_TEXT)
+        {
+            int iCol = item.iSubItem;
+            std::wstring content = m_session.getColumn(itemid, iCol);
+            // Copy the text to the LV_ITEM structure
+            // Maximum number of characters is in pItem->cchTextMax
+            lstrcpyn(item.pszText, content.c_str(), item.cchTextMax);
+        }
+    }
     }
 }
 
@@ -267,15 +295,13 @@ void Controller::submit()
     std::wstring selection = m_commandType.getText();
     std::wstring content = m_commandLine.getContent();
 
-    // Ignore empty command line.
-    if (content.empty())
-    {
-        return;
-    }
-
     // Different action based on different command type.
     if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_DANMAKU))
     {
+        if (content.length() == 0)
+        {
+            return;
+        }
         Bili::User::Credentials cred = Bili::Settings::GetCredentials();
         Bili::User::SendOptions options;
         options.roomid = m_session.getRoomID();
@@ -304,6 +330,7 @@ void Controller::submit()
     }
     else if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING))
     {
+        m_session.setFilter(content);
     }
 }
 

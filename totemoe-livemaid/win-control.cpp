@@ -3,7 +3,16 @@
 #include "win-control.hpp"
 #include "bili-https/bili-https.hpp"
 
+WNDPROC TableListView::defaultListViewProc = nullptr;
+
 WNDPROC EditControl::defaultEditProc = nullptr;
+
+LRESULT CALLBACK listViewProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    return ::CallWindowProc(TableListView::defaultListViewProc,
+        hWnd, message, wParam, lParam);
+}
 
 LRESULT CALLBACK commandEditProc(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

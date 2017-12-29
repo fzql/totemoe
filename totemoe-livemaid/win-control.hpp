@@ -172,16 +172,19 @@ protected:
     std::vector<std::wstring> m_vText;
 };
 
+LRESULT CALLBACK listViewProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 class TableListView : public WinControl
 {
 public:
 
     TableListView(HWND hWndParent, int id) :
-        WinControl(hWndParent, id), m_bLockVScroll(false)
+        WinControl(hWndParent, id)
     {
         m_hWnd = ::CreateWindow(WC_LISTVIEW,
             L"",
-            WS_CHILD | LVS_REPORT | LVS_EDITLABELS | LVS_SHOWSELALWAYS,
+            WS_CHILD | LVS_REPORT | LVS_EDITLABELS | LVS_SHOWSELALWAYS | LVS_OWNERDATA,
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             hWndParent,
             (HMENU)id,
@@ -195,6 +198,9 @@ public:
         }
 
         ListView_SetExtendedListViewStyleEx(m_hWnd, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+
+        defaultListViewProc = (WNDPROC)
+            ::SetWindowLongPtr(m_hWnd, GWLP_WNDPROC, (LONG_PTR)listViewProc);
     }
 public:
 
@@ -213,40 +219,12 @@ public:
 
     }
 
-    void push_back(std::array<std::wstring, 9> const &pushes)
-    {
-        LVITEM lvItem;
-
-        // Initialize LVITEM members that are common to all items.
-        lvItem.pszText = const_cast<LPWSTR>(pushes[0].c_str());
-        lvItem.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_STATE;
-        lvItem.stateMask = 0;
-        lvItem.iItem = ::SendMessage(m_hWnd, LVM_GETITEMCOUNT, 0, 0);
-        lvItem.iSubItem = 0;
-        lvItem.state = 0;
-
-        // Insert one column.
-        SendMessage(m_hWnd, LVM_INSERTITEM, 0, (LPARAM)&lvItem);
-
-        // Initialize LVITEM members that are different for each item.
-        size_t cItems = pushes.size();
-        for (size_t index = 1; index < cItems && index < m_vColumns.size(); index++)
-        {
-            lvItem.iSubItem = index;
-            lvItem.pszText = const_cast<LPWSTR>(pushes[index].c_str());
-            SendMessage(m_hWnd, LVM_SETITEM, 0, (LPARAM)&lvItem);
-        }
-
-        if (!m_bLockVScroll)
-        {
-            scrollToBottom();
-        }
-    }
-
     void scrollToBottom()
     {
-        int nItems = ::SendMessage(m_hWnd, LVM_GETITEMCOUNT, 0, 0);
-        SendMessage(m_hWnd, LVM_ENSUREVISIBLE, nItems - 1, TRUE);
+        int nItems = ListView_GetItemCount(m_hWnd);
+        ListView_EnsureVisible(m_hWnd, nItems - 1, TRUE);
+        ListView_SetItemState(m_hWnd, -1, LVIF_STATE,
+            LVIS_SELECTED | LVIS_FOCUSED);
     }
 
     void selectAll()
@@ -375,12 +353,12 @@ public:
             }
         }
     }
+public:
 
+    static WNDPROC defaultListViewProc;
 protected:
 
     std::vector<std::wstring> m_vColumns;
-
-    bool m_bLockVScroll;
 };
 
 class ComboBox : public WinControl
@@ -394,7 +372,8 @@ public:
             WS_EX_OVERLAPPEDWINDOW,
             WC_COMBOBOX,
             NULL,
-            CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_SIMPLE | WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
+            CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_SIMPLE |
+            WS_CHILD | WS_OVERLAPPED | WS_VISIBLE,
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             hWndParent,
             (HMENU)id,
