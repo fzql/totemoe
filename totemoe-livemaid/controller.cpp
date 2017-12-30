@@ -237,7 +237,7 @@ void Controller::showPropertySheet()
     propSheetPage.hInstance = I18N::GetHandle();
     propSheetPage.pfnDlgProc = NULL;
     propSheetPage.lParam = (LPARAM)NULL;
-    // ["General"]
+    // ["I18N"]
     propSheetPage.pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_I18N);
     propSheetPage.pfnDlgProc = (DLGPROC)I18N_PropDlgProc;
     propSheetPages.push_back(CreatePropertySheetPage(&propSheetPage));

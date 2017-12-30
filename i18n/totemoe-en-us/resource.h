@@ -43,6 +43,7 @@
 #define IDS_COMMANDTYPE_FILTERSTRING    132
 #define IDS_COMMANDLINE_DANMKAU_SUCCESS 133
 #define IDS_COMMANDLINE_DANMKAU_FAIL    134
+#define IDS_PROPPAGE_I18N_TIMEZONE_SYSTEM 135
 #define IDC_CONNECT_RESOLVE             1001
 #define IDC_CONNECT_ROOMID              1002
 #define IDC_COMBO_I18N_LANGUAGE         1009
@@ -50,6 +51,7 @@
 #define IDC_EDIT_DEDEUSERID             1011
 #define IDC_EDIT_SESSDATA               1012
 #define IDC_SESSION_VERIFY              1013
+#define IDC_COMBO_I18N_TIMEZONE         1014
 #define IDM_HELP                        32775
 #define ID_HELP_ABOUT                   40001
 #define ID_HELP_HELP                    40002
@@ -79,7 +81,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        112
 #define _APS_NEXT_COMMAND_VALUE         40029
-#define _APS_NEXT_CONTROL_VALUE         1014
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -42,12 +42,14 @@
 #define IDS_COMMANDTYPE_FILTERSTRING    132
 #define IDS_COMMANDLINE_DANMKAU_SUCCESS 133
 #define IDS_COMMANDLINE_DANMKAU_FAIL    134
+#define IDS_PROPPAGE_I18N_TIMEZONE_SYSTEM 135
 #define IDC_CONNECT_RESOLVE             1001
 #define IDC_COMBO_I18N_LANGUAGE         1009
 #define IDC_EDIT_DEDEUSERID__CKMD5      1010
 #define IDC_EDIT_DEDEUSERID             1011
 #define IDC_EDIT_SESSDATA               1012
 #define IDC_SESSION_VERIFY              1013
+#define IDC_COMBO_I18N_TIMEZONE         1014
 #define IDM_HELP                        32775
 #define ID_40002                        40002
 #define ID_40003                        40003

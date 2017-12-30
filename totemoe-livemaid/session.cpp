@@ -3,6 +3,8 @@
 #include "session.hpp"
 #include <algorithm>
 #include <codecvt>
+#include <ctime>
+#include <regex>
 
 MessageSession::MessageSession() :
     m_bAutoReconnect(true), m_bStopThread(true), m_bLockVScroll(false),
@@ -187,6 +189,7 @@ void MessageSession::setFilter(std::wstring const &keyword)
 void MessageSession::parseMessage(json const &object)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring timeZone = Bili::Settings::File::GetW("General", "timeZone");
 
     json value = {
         { "mID", m_nNextMessageID++ },
@@ -265,8 +268,28 @@ void MessageSession::parseMessage(json const &object)
     display[0] = std::to_wstring(value["room"].get<ROOM>());
     display[1] = std::to_wstring(value["mID"].get<long>());
     {
-        std::time_t temp = value["time"].get<std::time_t>();
-        std::tm* t = std::gmtime(&temp);
+        std::time_t time = value["time"].get<std::time_t>();
+        std::tm* t;
+        if (timeZone == L"system")
+        {
+            t = std::localtime(&time);
+        }
+        else
+        {
+            int offset = 0;
+            // Regex to match offset hours and minutes
+            std::wregex regexUTC(L"\\(UTC(?:([+-]?[0-9]{1,2}?):([0-5][0-9]))\\)");
+            std::wsmatch match;
+            if (std::regex_search(timeZone, match, regexUTC))
+            {
+                int hour = std::stoi(match[1]);
+                int minute = std::stoi(match[2]);
+                offset = (hour * 60 + minute) * 60;
+            }
+            time += offset;
+            t = std::gmtime(&time);
+        }
+        
         std::wstringstream wss;
         wss << std::put_time(t, L"%Y/%m/%d %H:%M:%S");
         display[2] = wss.str();

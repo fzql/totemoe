@@ -15,8 +15,9 @@ SI_Error Bili::Settings::File::Load()
     {
         ini.SetUnicode();
         result = ini.LoadFile("config.ini");
-        // [Security]
+        // [General]
         SET_DEFAULT("General", "language", "en-US");
+        SET_DEFAULT("General", "timeZone", "system");
         // [Security]
         SET_DEFAULT("Security", "liveCertificateChain", "api.live.bilibili.com.crt");
         SET_DEFAULT("Security", "enforceHttps", "1");
