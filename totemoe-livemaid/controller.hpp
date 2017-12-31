@@ -138,4 +138,6 @@ INT_PTR CALLBACK ConnectDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
+INT_PTR CALLBACK Danmaku_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
 INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

@@ -16,6 +16,7 @@
 #define IDS_BILI_ROOM                   107
 #define IDD_PROPPAGE_SESSION            107
 #define IDS_BILI_USERID                 108
+#define IDD_PROPPAGE_DANMAKU            108
 #define IDC_TOTEMOELIVEMAID             109
 #define IDS_BILI_USERNAME               109
 #define IDS_BILI_SUMMARY                110
@@ -54,6 +55,15 @@
 #define IDC_EDIT_SESSDATA               1012
 #define IDC_SESSION_VERIFY              1013
 #define IDC_COMBO_I18N_TIMEZONE         1014
+#define IDC_CHECK_DANMAKU_REGEX         1015
+#define IDC_CHECK_DANMAKU_EXPORT        1016
+#define IDC_CHECK_DANMAKU_EXPORT_CSV    1017
+#define IDC_CHECK_DANMAKU_FILTER_DANMAKU 1019
+#define IDC_CHECK_DANMAKU_FILTER_GIFTING 1020
+#define IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT 1021
+#define IDC_CHECK_DANMAKU_FILTER_UNKNOWN 1022
+#define IDC_COMBO_FILTER_SMALLTV        1023
+#define IDC_CHECK_DANMAKU_SMALLTV       1023
 #define IDM_HELP                        32775
 #define ID_HELP_ABOUT                   40001
 #define ID_HELP_HELP                    40002
@@ -81,9 +91,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40029
-#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

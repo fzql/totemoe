@@ -121,6 +121,207 @@ INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM
     return DefWindowProc(hDlg, message, wParam, lParam);
 }
 
+INT_PTR CALLBACK Danmaku_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_INITDIALOG:
+    {
+        // Get handles to protocol filtering checkboxes.
+        HWND hFilterDanmaku = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_DANMAKU);
+        HWND hFilterGifting = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_GIFTING);
+        HWND hFilterAnnouncement = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT);
+        HWND hFilterUnknown = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_UNKNOWN);
+
+        HWND hFilterRegex = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_REGEX);
+        HWND hFilterSmallTV = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_SMALLTV);
+        HWND hExport = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT);
+        HWND hExportCSV = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT_CSV);
+
+        std::wstring protocols = Bili::Settings::File::GetW("Danmaku", "filterProtocol");
+        // TODO: FIX THIS UGLY CODE.
+        protocols += L",";
+        std::wstring delimiter = L",";
+        size_t pos = 0;
+        while ((pos = protocols.find(L",")) != std::wstring::npos)
+        {
+            std::wstring protocol = protocols.substr(0, pos);
+            protocols.erase(0, pos + delimiter.length());
+            if (protocol == L"danmaku")
+            {
+                Button_SetCheck(hFilterDanmaku, TRUE);
+            }
+            else if (protocol == L"gifting")
+            {
+                Button_SetCheck(hFilterGifting, TRUE);
+            }
+            else if (protocol == L"announcement")
+            {
+                Button_SetCheck(hFilterAnnouncement, TRUE);
+            }
+            else if (protocol == L"unknown")
+            {
+                Button_SetCheck(hFilterUnknown, TRUE);
+            }
+        }
+
+        std::wstring filterRegex = Bili::Settings::File::GetW("Danmaku", "filterRegex");
+        if (filterRegex == L"on")
+        {
+            Button_SetCheck(hFilterRegex, TRUE);
+        }
+        std::wstring filterSmallTV = Bili::Settings::File::GetW("Danmaku", "filterSmallTV");
+        if (filterSmallTV == L"on")
+        {
+            Button_SetCheck(hFilterSmallTV, TRUE);
+        }
+        std::wstring autoExport = Bili::Settings::File::GetW("Danmaku", "autoExport");
+        if (autoExport == L"on" || autoExport == L"csv")
+        {
+            Button_SetCheck(hExport, TRUE);
+            if (autoExport == L"csv")
+            {
+                Button_SetCheck(hExportCSV, TRUE);
+            }
+        }
+        else
+        {
+            Button_Enable(hExportCSV, FALSE);
+        }
+
+        return TRUE;
+    }
+
+    case WM_COMMAND:
+    {
+        switch (HIWORD(wParam))
+        {
+        case BN_CLICKED:
+        {
+            if (LOWORD(wParam) == IDC_CHECK_DANMAKU_EXPORT)
+            {
+                HWND hExportCSV = GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT_CSV);
+                if (Button_GetCheck(GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT)))
+                {
+                    Button_Enable(hExportCSV, TRUE);
+                }
+                else
+                {
+                    Button_Enable(hExportCSV, FALSE);
+                    Button_SetCheck(hExportCSV, FALSE);
+                }
+            }
+        }
+        break;
+        }
+    }
+    break;
+
+    case WM_NOTIFY:
+    {
+        NMHDR *info = (NMHDR *)lParam;
+        switch (info->code)
+        {
+        case PSN_KILLACTIVE:
+        {
+
+            ::SetWindowLong(hDlg, DWL_MSGRESULT, FALSE);
+            return TRUE;
+        }
+
+        case PSN_APPLY:
+        {
+            // Get handles to protocol filtering checkboxes.
+            HWND hFilterDanmaku =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_DANMAKU);
+            HWND hFilterGifting =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_GIFTING);
+            HWND hFilterAnnouncement =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT);
+            HWND hFilterUnknown =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_UNKNOWN);
+
+            HWND hFilterRegex =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_REGEX);
+            HWND hFilterSmallTV =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_SMALLTV);
+            HWND hExport =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT);
+            HWND hExportCSV =
+                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT_CSV);
+
+            std::wstring filterProtocol;
+            std::vector<std::wstring> vProtocols;
+            if (::SendMessage(hFilterDanmaku, BM_GETCHECK, NULL, NULL))
+            {
+                vProtocols.push_back(L"danmaku");
+            }
+            if (::SendMessage(hFilterGifting, BM_GETCHECK, NULL, NULL))
+            {
+                vProtocols.push_back(L"gifting");
+            }
+            if (::SendMessage(hFilterAnnouncement, BM_GETCHECK, NULL, NULL))
+            {
+                vProtocols.push_back(L"announcement");
+            }
+            if (::SendMessage(hFilterUnknown, BM_GETCHECK, NULL, NULL))
+            {
+                vProtocols.push_back(L"unknown");
+            }
+            for (size_t index = 0; index < vProtocols.size(); ++index)
+            {
+                filterProtocol += vProtocols[index];
+                if (index + 1 < vProtocols.size())
+                {
+                    filterProtocol += L",";
+                }
+            }
+            Bili::Settings::File::SetW("Danmaku", "filterProtocol", filterProtocol);
+
+            if (::SendMessage(hFilterRegex, BM_GETCHECK, NULL, NULL))
+            {
+                Bili::Settings::File::SetW("Danmaku", "filterRegex", L"on");
+            }
+            else
+            {
+                Bili::Settings::File::SetW("Danmaku", "filterRegex", L"off");
+            }
+
+            if (::SendMessage(hFilterSmallTV, BM_GETCHECK, NULL, NULL))
+            {
+                Bili::Settings::File::SetW("Danmaku", "filterSmallTV", L"on");
+            }
+            else
+            {
+                Bili::Settings::File::SetW("Danmaku", "filterSmallTV", L"off");
+            }
+
+            if (::SendMessage(hExport, BM_GETCHECK, NULL, NULL))
+            {
+                if (::SendMessage(hExportCSV, BM_GETCHECK, NULL, NULL))
+                {
+                    Bili::Settings::File::SetW("Danmaku", "autoExport", L"csv");
+                }
+                else
+                {
+                    Bili::Settings::File::SetW("Danmaku", "autoExport", L"on");
+                }
+            }
+            else
+            {
+                Bili::Settings::File::SetW("Danmaku", "autoExport", L"off");
+            }
+
+            ::SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
+            return TRUE;
+        }
+        }
+        return FALSE;
+    }
+    }
+    return DefWindowProc(hDlg, message, wParam, lParam);
+}
+
 INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)

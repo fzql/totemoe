@@ -107,6 +107,27 @@ BEGIN
     PUSHBUTTON      "Verify",IDC_SESSION_VERIFY,7,55,196,14,WS_DISABLED
 END
 
+IDD_PROPPAGE_DANMAKU DIALOGEX 0, 0, 210, 154
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Danmaku"
+FONT 9, "Microsoft Sans Serif", 400, 0, 0x0
+BEGIN
+    CONTROL         "Enable Regex Danmaku filter",IDC_CHECK_DANMAKU_REGEX,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,52,100,10
+    CONTROL         "Export Danmaku automatically",IDC_CHECK_DANMAKU_EXPORT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,78,105,10
+    CONTROL         "Export to CSV file instead",IDC_CHECK_DANMAKU_EXPORT_CSV,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,91,90,10
+    GROUPBOX        "Filter Protocol",IDC_STATIC,7,7,196,41
+    CONTROL         "Danmaku",IDC_CHECK_DANMAKU_FILTER_DANMAKU,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,18,44,10
+    CONTROL         "Gifting",IDC_CHECK_DANMAKU_FILTER_GIFTING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,79,18,35,10
+    CONTROL         "Announcement",IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,135,18,60,10
+    CONTROL         "Unknown",IDC_CHECK_DANMAKU_FILTER_UNKNOWN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,32,44,10
+    CONTROL         "Filter Danmaku sent because of SmallTV Raffle",IDC_CHECK_DANMAKU_SMALLTV,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,65,154,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -147,6 +168,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 147
     END
+
+    IDD_PROPPAGE_DANMAKU, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 203
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 147
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -172,6 +201,11 @@ BEGIN
 END
 
 IDD_PROPPAGE_SESSION AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PROPPAGE_DANMAKU AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

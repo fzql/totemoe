@@ -26,6 +26,11 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT("Session", "DedeUserID", "");
         SET_DEFAULT("Session", "DedeUserID__ckMd5", "");
         SET_DEFAULT("Session", "SESSDATA", "");
+        // [Danmaku]
+        SET_DEFAULT("Danmaku", "autoExport", "on");
+        SET_DEFAULT("Danmaku", "filterSmallTV", "off");
+        SET_DEFAULT("Danmaku", "filterProtocol", "unknown");
+        SET_DEFAULT("Danmaku", "filterRegex", "off");
         // [SendDanmaku]
         SET_DEFAULT("SendDanmaku", "color", "16777215");
         SET_DEFAULT("SendDanmaku", "fontsize", "25");

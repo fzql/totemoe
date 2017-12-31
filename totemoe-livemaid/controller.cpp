@@ -246,6 +246,10 @@ void Controller::showPropertySheet()
     propSheetPage.pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_SESSION);
     propSheetPage.pfnDlgProc = (DLGPROC)Session_PropDlgProc;
     propSheetPages.push_back(CreatePropertySheetPage(&propSheetPage));
+    // ["Danmaku"]
+    propSheetPage.pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_DANMAKU);
+    propSheetPage.pfnDlgProc = (DLGPROC)Danmaku_PropDlgProc;
+    propSheetPages.push_back(CreatePropertySheetPage(&propSheetPage));
     // Initialize property sheet header.
     PROPSHEETHEADER propSheetHeader;
     propSheetHeader.dwSize = sizeof(PROPSHEETHEADER);
