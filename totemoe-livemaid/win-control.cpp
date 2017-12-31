@@ -10,6 +10,31 @@ WNDPROC EditControl::defaultEditProc = nullptr;
 LRESULT CALLBACK listViewProc(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    switch (message)
+    {
+    case WM_CHAR:
+        if (wParam == 0x1)
+        {
+            if (GetKeyState(VK_CONTROL))
+            {
+                ::SendMessage(GetParent(hWnd), WM_COMMAND, IDM_DANMAKU_SELECTALL, NULL);
+                return TRUE;
+            }
+        }
+        else if (wParam == 0x3)
+        {
+            if (GetKeyState(VK_CONTROL))
+            {
+                int nSelected = ListView_GetSelectedCount(hWnd);
+                if (nSelected > 0)
+                {
+                    ::SendMessage(GetParent(hWnd), WM_COMMAND, IDM_DANMAKU_COPYSELECTED, NULL);
+                }
+                return TRUE;
+            }
+        }
+
+    }
     return ::CallWindowProc(TableListView::defaultListViewProc,
         hWnd, message, wParam, lParam);
 }
