@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "controller.hpp"
+#include "resource-i18n.hpp"
 #include "bili-https/bili-https.hpp"
 
 Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :

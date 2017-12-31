@@ -43,6 +43,8 @@ public:
 
     void setFilter(std::wstring const &keyword = std::wstring());
 
+    void setFilterCount();
+
     void setStatusBar(StatusBar &statusBar)
     {
         m_pStatusBar = &statusBar;

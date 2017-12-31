@@ -2,9 +2,10 @@
 //
 
 #include "stdafx.h"
-#include "livemaid.h"
-#include "win-main.hpp"
 #include "controller.hpp"
+#include "livemaid.h"
+#include "resource-i18n.hpp"
+#include "win-main.hpp"
 
 // Current instance.
 HINSTANCE hInst;

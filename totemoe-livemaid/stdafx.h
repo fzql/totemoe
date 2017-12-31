@@ -49,7 +49,6 @@ inline void WinSetLong(HWND hwnd, T value, int which = GWL_USERDATA)
 #include "win-exception.hpp"
 #include "i18n.hpp"
 #include "Resource.h"
-#include "resource-i18n.hpp"
 #include "resource-string.hpp"
 #include "custom-message.hpp"
 #include <string>

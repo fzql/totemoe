@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include "resource-i18n.hpp"
 #include "session.hpp"
 #include <algorithm>
 #include <codecvt>
@@ -166,23 +167,52 @@ void MessageSession::setFilter(std::wstring const &keyword)
             }
         }
     }
+    // If the list view has been set,
     if (m_pTableListView != nullptr)
     {
+        // Obtain its handle.
         HWND hListView = m_pTableListView->getHandle();
-        if (m_vFiltered.empty())
+        // Next, set item count.
+        int nItems = 0;
+        if (m_keyword.length() == 0)
         {
-            ListView_SetItemCountEx(hListView, m_vDisplay.size(),
-                LVSICF_NOINVALIDATEALL);
+            nItems = m_vDisplay.size();
         }
         else
         {
-            ListView_SetItemCountEx(hListView, m_vFiltered.size(),
-                LVSICF_NOINVALIDATEALL);
+            nItems = m_vFiltered.size();
         }
+        ListView_SetItemCountEx(hListView, nItems, LVSICF_NOINVALIDATEALL);
+        // Scroll for the win!
         if (!m_bLockVScroll)
         {
             m_pTableListView->scrollToBottom();
         }
+        if (m_pStatusBar != nullptr)
+        {
+            setFilterCount();
+        }
+    }
+}
+
+void MessageSession::setFilterCount()
+{
+    // If keyword is empty, notify user that filter has been reset.
+    if (m_keyword.length() == 0)
+    {
+        ResourceString msg(I18N::GetHandle(), IDS_STATUS_FILTERRESET);
+        m_pStatusBar->setText(0, (LPCWSTR)msg);
+    }
+    // Otherwise, notify number of results and the keyword
+    else
+    {
+        WCHAR status[MAX_LOADSTRING];
+        // Retrieve format string.
+        ResourceString fmt(I18N::GetHandle(), IDS_STATUS_FILTERRESULT);
+        int nCount = m_vFiltered.size();
+        _swprintf_p(status, MAX_LOADSTRING, (LPCWSTR)fmt,
+            nCount, m_keyword.c_str());
+        m_pStatusBar->setText(0, status);
     }
 }
 
@@ -289,7 +319,7 @@ void MessageSession::parseMessage(json const &object)
             time += offset;
             t = std::gmtime(&time);
         }
-        
+
         std::wstringstream wss;
         wss << std::put_time(t, L"%Y/%m/%d %H:%M:%S");
         display[2] = wss.str();
@@ -359,6 +389,13 @@ void MessageSession::parseMessage(json const &object)
         if (!m_bLockVScroll)
         {
             m_pTableListView->scrollToBottom();
+        }
+        if (m_pStatusBar != nullptr)
+        {
+            if (m_keyword.length() > 0)
+            {
+                setFilterCount();
+            }
         }
     }
 }

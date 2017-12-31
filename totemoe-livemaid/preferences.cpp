@@ -1,9 +1,10 @@
 
 #include "stdafx.h"
 #include "controller.hpp"
-#include "bili-https/bili-https.hpp"
+#include "resource-i18n.hpp"
 #include "Windowsx.h"
 #include <iomanip>
+#include "bili-https/bili-https.hpp"
 
 INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {

@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include "resource-i18n.hpp"
 #include "win-control.hpp"
 #include "bili-https/bili-https.hpp"
 
@@ -13,6 +14,7 @@ LRESULT CALLBACK listViewProc(
     switch (message)
     {
     case WM_CHAR:
+    {
         if (wParam == 0x1)
         {
             if (GetKeyState(VK_CONTROL))
@@ -33,6 +35,8 @@ LRESULT CALLBACK listViewProc(
                 return TRUE;
             }
         }
+    }
+    return TRUE;
 
     }
     return ::CallWindowProc(TableListView::defaultListViewProc,
@@ -45,14 +49,16 @@ LRESULT CALLBACK commandEditProc(
     switch (message)
     {
     case WM_KEYDOWN:
+    {
         switch (wParam)
         {
         case VK_RETURN:
-        {
+            // Catches return key.  Submit action.
             ::SendMessage(::GetParent(hWnd), WM_COMMANDLINE_ENTER, NULL, NULL);
             return TRUE;
         }
-        }
+    }
+    break;
 
     case WM_CHAR:
         if (wParam == VK_TAB)
