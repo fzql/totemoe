@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "controller.hpp"
 #include "resource-i18n.hpp"
+#include <regex>
 #include "bili-https/bili-https.hpp"
 
 Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
@@ -335,7 +336,16 @@ void Controller::submit()
     }
     else if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING))
     {
-        m_session.setFilter(content);
+        std::wstring filterRegex =
+            Bili::Settings::File::GetW("Danmaku", "filterRegex");
+        if (filterRegex == L"on")
+        {
+            m_session.setFilterRegex(content);
+        }
+        else
+        {
+            m_session.setFilter(content);
+        }
     }
 }
 

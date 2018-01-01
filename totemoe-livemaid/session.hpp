@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "win-control.hpp"
+#include <regex>
 
 class MessageSession
 {
@@ -43,6 +44,8 @@ public:
 
     void setFilter(std::wstring const &keyword = std::wstring());
 
+    void setFilterRegex(std::wstring const &regex);
+
     void setFilterCount();
 
     void setStatusBar(StatusBar &statusBar)
@@ -72,6 +75,10 @@ private:
     Bili::Server::Room m_room;
     // Used to filter displayed messages.
     std::wstring m_keyword;
+    // Used to filter displayed messages.
+    std::wregex m_regex;
+    // Used to set filter type.
+    bool m_bFilterRegex;
 
     std::thread m_thread;
 

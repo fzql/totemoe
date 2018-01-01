@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <codecvt>
 #include <ctime>
-#include <regex>
 
 MessageSession::MessageSession() :
     m_bAutoReconnect(true), m_bStopThread(true), m_bLockVScroll(false),
@@ -151,6 +150,8 @@ void MessageSession::disconnect()
 void MessageSession::setFilter(std::wstring const &keyword)
 {
     m_keyword = keyword;
+    m_bFilterRegex = false;
+    m_regex = std::wregex(L"");
     m_vFiltered.clear();
     if (m_keyword.length() > 0)
     {
@@ -160,6 +161,55 @@ void MessageSession::setFilter(std::wstring const &keyword)
             for (size_t col = 0; !match && col < 9; ++col)
             {
                 match = m_vDisplay[index][col].find(m_keyword) != std::wstring::npos;
+            }
+            if (match)
+            {
+                m_vFiltered.push_back(index);
+            }
+        }
+    }
+    // If the list view has been set,
+    if (m_pTableListView != nullptr)
+    {
+        // Obtain its handle.
+        HWND hListView = m_pTableListView->getHandle();
+        // Next, set item count.
+        int nItems = 0;
+        if (m_keyword.length() == 0)
+        {
+            nItems = m_vDisplay.size();
+        }
+        else
+        {
+            nItems = m_vFiltered.size();
+        }
+        ListView_SetItemCountEx(hListView, nItems, LVSICF_NOINVALIDATEALL);
+        // Scroll for the win!
+        if (!m_bLockVScroll)
+        {
+            m_pTableListView->scrollToBottom();
+        }
+        if (m_pStatusBar != nullptr)
+        {
+            setFilterCount();
+        }
+    }
+}
+
+void MessageSession::setFilterRegex(std::wstring const &regex)
+{
+    m_keyword = regex;
+    m_regex = std::wregex(regex);
+    m_bFilterRegex = true;
+    m_vFiltered.clear();
+    if (m_keyword.length() > 0)
+    {
+        for (size_t index = 0; index < m_vDisplay.size(); ++index)
+        {
+            bool match = false;
+            for (size_t col = 0; !match && col < 9; ++col)
+            {
+                match = std::regex_search(m_vDisplay[index][col], m_regex);
             }
             if (match)
             {
@@ -208,10 +258,19 @@ void MessageSession::setFilterCount()
     {
         WCHAR status[MAX_LOADSTRING];
         // Retrieve format string.
-        ResourceString fmt(I18N::GetHandle(), IDS_STATUS_FILTERRESULT);
         int nCount = m_vFiltered.size();
-        _swprintf_p(status, MAX_LOADSTRING, (LPCWSTR)fmt,
-            nCount, m_keyword.c_str());
+        if (m_bFilterRegex)
+        {
+            ResourceString fmt(I18N::GetHandle(), IDS_STATUS_FILTERRESULT_REGEX);
+            _swprintf_p(status, MAX_LOADSTRING, (LPCWSTR)fmt,
+                nCount, m_keyword.c_str());
+        }
+        else
+        {
+            ResourceString fmt(I18N::GetHandle(), IDS_STATUS_FILTERRESULT);
+            _swprintf_p(status, MAX_LOADSTRING, (LPCWSTR)fmt,
+                nCount, m_keyword.c_str());
+        }
         m_pStatusBar->setText(0, status);
     }
 }

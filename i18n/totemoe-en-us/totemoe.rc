@@ -298,6 +298,8 @@ BEGIN
     IDS_PROPPAGE_I18N_TIMEZONE_SYSTEM "System Time Zone"
     IDS_STATUS_FILTERRESULT "Showing %1$d result(s) matching filter ""%2$s"""
     IDS_STATUS_FILTERRESET  "Filter has been reset"
+    IDS_STATUS_FILTERRESULT_REGEX 
+                            "Showing %1$d result(s) matching regex /%2$s/"
 END
 
 #endif    // English (United States) resources
