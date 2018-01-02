@@ -124,6 +124,7 @@ void Controller::command(int cmd)
             0, m_vDanmakuColors.size() - 1, selection, MF_BYPOSITION);
         std::string color = std::to_string(m_vDanmakuColors[selection].value);
         Bili::Settings::File::Set("SendDanmaku", "color", color.c_str());
+        Bili::Settings::File::Save();
     }
 }
 
