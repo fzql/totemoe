@@ -81,18 +81,21 @@
 #define IDM_DISCONNECT                  40018
 #define IDM_CONNECTTO                   40019
 #define ID_TOOL                         40020
-#define ID_DANMAKU_SELECTALL            40022
 #define IDM_DANMAKU_COPYSELECTED        40023
 #define IDM_DANMAKU_SELECTALL           40025
 #define ID_HELP_GITHUB                  40026
 #define IDM_PREFERENCES                 40028
+#define IDM_MODE_DEFAULT                40033
+#define IDM_COLOR_DEFAULT               40035
+#define IDM_DANMAKU_MODE                40038
+#define IDM_DANMAKU_COLOR               40039
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
-#define _APS_NEXT_COMMAND_VALUE         40029
+#define _APS_NEXT_COMMAND_VALUE         40040
 #define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

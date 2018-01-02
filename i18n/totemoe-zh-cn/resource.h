@@ -84,16 +84,19 @@
 #define IDM_DANMAKU_COPYSELECTED        40023
 #define IDM_DANMAKU_SELECTALL           40025
 #define ID_40026                        40026
-#define ID_DANMAKU_SELECTALL            40027
 #define IDM_PREFERENCES                 40028
+#define IDM_MODE_DEFAULT                40033
+#define IDM_COLOR_DEFAULT               40035
+#define IDM_DANMAKU_MODE                40038
+#define IDM_DANMAKU_COLOR               40039
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        126
-#define _APS_NEXT_COMMAND_VALUE         40030
-#define _APS_NEXT_CONTROL_VALUE         1004
+#define _APS_NEXT_COMMAND_VALUE         40040
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

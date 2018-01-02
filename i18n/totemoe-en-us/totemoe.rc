@@ -229,14 +229,19 @@ BEGIN
     END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Logic",                      ID_40006, INACTIVE
+        MENUITEM "Copy Danmaku",                IDM_DANMAKU_COPYSELECTED, INACTIVE
+        MENUITEM "Select All Danmaku",          IDM_DANMAKU_SELECTALL
         MENUITEM SEPARATOR
         MENUITEM "Preferences...",              IDM_PREFERENCES
     END
     POPUP "&Danmaku"
     BEGIN
-        MENUITEM "Copy Selected",               IDM_DANMAKU_COPYSELECTED, INACTIVE
-        MENUITEM "Select All",                  IDM_DANMAKU_SELECTALL
+        MENUITEM "Mode",                        IDM_DANMAKU_MODE
+        MENUITEM "Color",                       IDM_DANMAKU_COLOR
+    END
+    POPUP "&Tool"
+    BEGIN
+        MENUITEM "&Logic",                      ID_40006, INACTIVE
     END
     POPUP "&Help"
     BEGIN
@@ -244,7 +249,6 @@ BEGIN
         MENUITEM "Help...",                     IDM_HELP
         MENUITEM "GitHub",                      ID_HELP_HELP, INACTIVE
     END
-    MENUITEM "&Tool",                       ID_TOOL, INACTIVE
 END
 
 

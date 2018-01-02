@@ -7,6 +7,19 @@
 #include "win-control.hpp"
 #include "session.hpp"
 
+struct DanmakuModeStruct
+{
+    std::wstring name;
+};
+
+struct DanmakuColorStruct
+{
+    // RGB value of the color.
+    int value;
+    // Name of the color.
+    std::wstring name;
+};
+
 class PaintCanvas : public Canvas
 {
 public:
@@ -86,11 +99,15 @@ public:
 
     void disconnect();
 
+    LRESULT drawItem(UINT ctlID, DRAWITEMSTRUCT &item);
+
     LPCWSTR getActiveSessionColumn(int row, int col);
 
     HWND getPropertySheet() const { return m_hPropSheet; }
 
     void initMenu(HMENU hMenu);
+
+    LRESULT measureItem(UINT ctlID, MEASUREITEMSTRUCT &item);
 
     void notify(LPNMHDR lpNMHdr);
 
@@ -108,6 +125,10 @@ public:
 private:
 
     static HMODULE  hI18N;
+
+    HMENU           m_hDanmakuColor;
+    
+    HMENU           m_hDanmakuMode;
 
     HWND            m_hWnd;
 
@@ -128,6 +149,10 @@ private:
     MessageSession  m_session;
 
     HWND            m_hPropSheet;
+
+    std::vector<DanmakuModeStruct> m_vDanmakuModes;
+
+    std::vector<DanmakuColorStruct> m_vDanmakuColors;
 
     std::thread     m_thread_fetch;
 };

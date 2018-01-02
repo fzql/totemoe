@@ -34,15 +34,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         WinMainClass mainWndClass(WndProc, IDC_TOTEMOELIVEMAID, hInstance);
         HWND hWndOther = mainWndClass.GetRunningWindow();
         // Is there a running instance of this program?
-        // if (hWndOther != nullptr)
-        // {
-        //     ::SetForegroundWindow(hWndOther);
-        //     if (::IsIconic(hWndOther))
-        //     {
-        //         ::ShowWindow(hWndOther, SW_RESTORE);
-        //     }
-        //     return 0;
-        // }
+        if (hWndOther != nullptr)
+        {
+            ::SetForegroundWindow(hWndOther);
+            if (::IsIconic(hWndOther))
+            {
+                ::ShowWindow(hWndOther, SW_RESTORE);
+            }
+            return 0;
+        }
         mainWndClass.Register();
 
         // Initialize and show window.
@@ -182,6 +182,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_COMMAND:
         pCtrl->command(LOWORD(wParam));
+        break;
+    case WM_MEASUREITEM:
+        pCtrl->measureItem(wParam, *((MEASUREITEMSTRUCT *)lParam));
+        break;
+    case WM_DRAWITEM:
+        pCtrl->drawItem(wParam, *((DRAWITEMSTRUCT *)lParam));
         break;
     case WM_SET_ROOM:
         pCtrl->setRoom((ROOM)lParam);

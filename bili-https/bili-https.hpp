@@ -29,6 +29,9 @@ namespace Bili
         BILIHTTPS_API json GetAnchorInfo(ROOM roomid);
 
         BILIHTTPS_API json GetRecentChat(ROOM roomid);
+
+        BILIHTTPS_API json GetDanmakuSettings(ROOM roomid);
+
     }
 
     namespace User

@@ -296,10 +296,7 @@ static json curlHttpsGet(std::string const &api,
                 try
                 {
                     parsedResult = json::parse(result);
-                    if (parsedResult["code"] == 0 && (
-                        parsedResult["msg"] == "success" ||
-                        parsedResult["msg"] == "ok" ||
-                        parsedResult["msg"] == ""))
+                    if (parsedResult["code"] == 0)
                     {
                         returnValue = parsedResult["data"];
                     }

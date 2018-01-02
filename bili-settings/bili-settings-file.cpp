@@ -45,6 +45,7 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT("LiveEndPoint", "roomRecentChat", "/ajax/msg");
         SET_DEFAULT("LiveEndPoint", "userSendToRoom", "/msg/send");
         SET_DEFAULT("LiveEndPoint", "signInInfo", "/sign/GetSignInfo");
+        SET_DEFAULT("LiveEndPoint", "danmakuSettings", "/api/ajaxGetConfig");
         // [WebSocketEndPoint]
         SET_DEFAULT("WebSocketEndPoint", "connect", "/sub");
         // [RoomServer]

@@ -107,6 +107,24 @@ void Controller::command(int cmd)
         showPropertySheet();
         break;
     }
+
+    // Menu item clicked: Danmaku > Mode > some mode.
+    if (cmd >= IDM_DANMAKU_MODE_BASE && cmd <= IDM_DANMAKU_MODE_END)
+    {
+        int selection = cmd - IDM_DANMAKU_MODE_BASE;
+        CheckMenuRadioItem(m_hDanmakuMode,
+            0, m_vDanmakuModes.size() - 1, selection, MF_BYPOSITION);
+    }
+
+    // Menu item clicked: Danmaku > Color > some color;
+    if (cmd >= IDM_DANMAKU_COLOR_BASE && cmd <= IDM_DANMAKU_COLOR_END)
+    {
+        int selection = cmd - IDM_DANMAKU_COLOR_BASE;
+        CheckMenuRadioItem(m_hDanmakuColor,
+            0, m_vDanmakuColors.size() - 1, selection, MF_BYPOSITION);
+        std::string color = std::to_string(m_vDanmakuColors[selection].value);
+        Bili::Settings::File::Set("SendDanmaku", "color", color.c_str());
+    }
 }
 
 void Controller::connect()
@@ -119,6 +137,80 @@ void Controller::disconnect()
     m_session.disconnect();
     using namespace std::chrono_literals;
     std::this_thread::sleep_for(500ms);
+}
+
+LRESULT Controller::drawItem(UINT ctlID, DRAWITEMSTRUCT &item)
+{
+    switch (ctlID)
+    {
+    case NULL:
+    {
+        if (item.itemID >= IDM_DANMAKU_COLOR_BASE &&
+            item.itemID <= IDM_DANMAKU_COLOR_END)
+        {
+            DanmakuColorStruct &color = *((DanmakuColorStruct *)item.itemData);
+            COLOR16 fillR = (color.value & 0xFF0000) >> 16;
+            COLOR16 fillG = (color.value & 0x00FF00) >> 8;
+            COLOR16 fillB = (color.value & 0x0000FF);
+            item.itemAction = ODA_DRAWENTIRE;
+
+            RECT rect = item.rcItem;
+            DWORD colorMenu = GetSysColor(COLOR_MENU);
+            DWORD colorMenuHighlight = GetSysColor(COLOR_MENUHILIGHT);
+            SetBkMode(item.hDC, TRANSPARENT);
+
+            GRADIENT_RECT gradRect = { 0, 1 };
+            TRIVERTEX triVertext[2];
+            triVertext[0] = {
+                rect.left,
+                rect.top,
+                COLOR16(fillR << 8), COLOR16(fillG << 8), COLOR16(fillB << 8),
+                0xFF00
+            };
+            if (item.itemState & ODS_SELECTED)
+            {
+                triVertext[1] = {
+                    rect.right,
+                    rect.bottom,
+                    COLOR16((colorMenuHighlight & 0xFF0000) >> 8),
+                    COLOR16((colorMenuHighlight & 0x00FF00)),
+                    COLOR16((colorMenuHighlight & 0x0000FF) << 8), 0xFF00
+                };
+            }
+            else
+            {
+                triVertext[1] = {
+                    rect.right,
+                    rect.bottom,
+                    COLOR16((colorMenu & 0xFF0000) >> 8),
+                    COLOR16((colorMenu & 0x00FF00)),
+                    COLOR16((colorMenu & 0x0000FF) << 8), 0xFF00
+                };
+            }
+
+            GradientFill(item.hDC, triVertext, 2, &gradRect, 1, GRADIENT_FILL_RECT_H);
+
+            if ((item.itemState & ODS_CHECKED) && (item.itemState & ODS_SELECTED))
+            {
+                SetTextAlign(item.hDC, TA_RIGHT);
+                std::wstringstream wss;
+                wss << L"#" << std::hex << std::uppercase
+                    << std::setfill(L'0') << std::setw(6) << color.value;
+                std::wstring hexCode = wss.str();
+                TextOut(item.hDC, rect.right - 3, rect.top + 3,
+                    hexCode.c_str(), hexCode.length());
+            }
+            else if (item.itemState & (ODS_CHECKED | ODS_SELECTED))
+            {
+                SetTextAlign(item.hDC, TA_RIGHT);
+                TextOut(item.hDC, rect.right - 3, rect.top + 3,
+                    color.name.c_str(), color.name.length());
+            }
+        }
+    }
+    break;
+    }
+    return FALSE;
 }
 
 LPCWSTR Controller::getActiveSessionColumn(int row, int col)
@@ -156,14 +248,106 @@ void Controller::initMenu(HMENU hMenu)
             }
             break;
         case IDM_DANMAKU_COPYSELECTED:
+        {
             int nSelected = m_listView.getSelectedCount();
             if (nSelected > 0)
             {
                 EnableMenuItem(GetMenu(m_hWnd), id, MF_ENABLED);
             }
-            break;
+        }
+        break;
+        case IDM_DANMAKU_MODE:
+        {
+            // Set Danmaku Mode/Color
+            json danmaku = Bili::Room::GetDanmakuSettings(NULL);
+            if (danmaku.find("error") == danmaku.end())
+            {
+                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+                std::string mode = Bili::Settings::File::Get("SendDanmaku", "mode");
+                std::string color = Bili::Settings::File::Get("SendDanmaku", "color");
+                int colorCode = std::stoi(color);
+
+                m_hDanmakuMode = CreatePopupMenu();
+                json const &modes = danmaku["mode"];
+                for (size_t index = 0; index < modes.size(); ++index)
+                {
+                    DanmakuModeStruct dms;
+                    std::string identifier = modes[index]["type"].get<std::string>();
+                    dms.name = converter.from_bytes(identifier);
+                    m_vDanmakuModes.push_back(dms);
+                }
+                for (size_t index = 0; index < modes.size(); ++index)
+                {
+                    int identifier = IDM_DANMAKU_MODE_BASE + index;
+                    AppendMenu(m_hDanmakuMode, MF_STRING, identifier,
+                        (LPCWSTR)m_vDanmakuModes[index].name.c_str());
+                    // Disable untested modes.
+                    if (index > 0)
+                    {
+                        EnableMenuItem(m_hDanmakuMode, identifier,
+                            MF_BYCOMMAND | MF_DISABLED);
+                    }
+                }
+                if (mode == "1")
+                {
+                    CheckMenuRadioItem(m_hDanmakuMode,
+                        0, m_vDanmakuModes.size() - 1, 0, MF_BYPOSITION);
+                }
+                ModifyMenu(hMenu, IDM_DANMAKU_MODE,
+                    MF_BYCOMMAND | MF_POPUP, (UINT_PTR)m_hDanmakuMode, L"Mode");
+
+                m_hDanmakuColor = CreatePopupMenu();
+                json const &colors = danmaku["color"];
+                m_vDanmakuColors.clear();
+                int activeColor = -1;
+                for (size_t index = 0; index < colors.size(); ++index)
+                {
+                    DanmakuColorStruct dcs;
+                    std::string name = colors[index]["name"].get<std::string>();
+                    std::string value = colors[index]["value"].get<std::string>();
+                    dcs.value = std::stoi(value, 0, 16);
+                    dcs.name = converter.from_bytes(name);
+                    m_vDanmakuColors.push_back(dcs);
+                    if (colorCode == dcs.value)
+                    {
+                        activeColor = index;
+                    }
+                }
+                for (size_t index = 0; index < colors.size(); ++index)
+                {
+                    int identifier = IDM_DANMAKU_COLOR_BASE + index;
+                    AppendMenu(m_hDanmakuColor, MF_STRING | MF_OWNERDRAW,
+                        identifier, (LPCWSTR)&m_vDanmakuColors[index]);
+                }
+                CheckMenuRadioItem(m_hDanmakuColor,
+                    0, m_vDanmakuColors.size() - 1, activeColor, MF_BYPOSITION);
+                ModifyMenu(hMenu, IDM_DANMAKU_COLOR,
+                    MF_BYCOMMAND | MF_POPUP, (UINT_PTR)m_hDanmakuColor, L"Color");
+            }
+        }
+        break;
         }
     }
+
+}
+
+LRESULT Controller::measureItem(UINT ctlID, MEASUREITEMSTRUCT &item)
+{
+    switch (ctlID)
+    {
+    case NULL:
+    {
+        if (item.itemID >= IDM_DANMAKU_COLOR_BASE &&
+            item.itemID <= IDM_DANMAKU_COLOR_END)
+        {
+            item.itemHeight = 23;
+            item.itemWidth = 233;
+        }
+    }
+    break;
+    }
+    return FALSE;
 }
 
 void Controller::notify(LPNMHDR lpNMHdr)

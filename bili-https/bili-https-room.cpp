@@ -99,3 +99,11 @@ json Bili::Room::GetDanmakuServer(ROOM roomid)
             { "data", true }
         });
     }
+
+    json Bili::Room::GetDanmakuSettings(ROOM roomid)
+    {
+        auto url = Bili::Settings::GetAPI("live", "danmakuSettings");
+        return curlHttpsGet(url, {
+            { "data", true }
+        });
+    }
