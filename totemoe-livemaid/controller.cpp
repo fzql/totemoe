@@ -52,13 +52,9 @@ Controller::Controller(HWND hWnd, CREATESTRUCT *pCreate) :
 
 Controller::~Controller()
 {
-    try
+    if (m_thread_fetch.joinable())
     {
         m_thread_fetch.join();
-    }
-    catch (const std::system_error &)
-    {
-        /* suppressed */
     }
     ::PostQuitMessage(0);
 }

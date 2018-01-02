@@ -5,10 +5,11 @@
 #include <algorithm>
 #include <codecvt>
 #include <ctime>
+#include <locale>
 
 MessageSession::MessageSession() :
     m_bAutoReconnect(true), m_bStopThread(true), m_bLockVScroll(false),
-    m_nNextMessageID(0)
+    m_nNextMessageID(0), m_pFile(nullptr)
 {
 }
 
@@ -89,10 +90,21 @@ void MessageSession::connect()
                 }
                 for (auto &msg : messages)
                 {
+                    json data = json::parse(msg);
+                    if (data.find("cmd") != data.end())
+                    {
+                        if (data["cmd"] == "cmd")
+                        {
+                            if (data["msg"] == "Closed" || data["msg"] == "Failed")
+                            {
+                                m_bStopThread = true;
+                            }
+                        }
+                    }
                     parseMessage({
                         { "time" , time(nullptr) },
                         { "room" , m_room.getRoomID() },
-                        { "data", json::parse(msg) }
+                        { "data", data }
                     });
                 }
             }
@@ -100,8 +112,11 @@ void MessageSession::connect()
             {
                 quit = true;
             }
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for(50ms);
+            if (!quit)
+            {
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(50ms);
+            }
         }
     });
     if (m_thread.joinable())
@@ -120,12 +135,33 @@ void MessageSession::disconnect()
 {
     m_bStopThread = true;
     m_room.disconnect(websocketpp::close::status::normal, "User disconnect");
+    // Close file.
+    fclose(m_pFile);
+    m_pFile = nullptr;
+    // Shut down thread.
     if (m_thread.joinable())
     {
         m_thread.join();
     }
     std::condition_variable condition;
     std::unique_lock<std::mutex> lock(m_mutex_message);
+    auto const &messages = m_room.retrieve();
+    if (!messages.empty())
+    {
+        if (m_pStatusBar != nullptr)
+        {
+            m_pStatusBar->setText(2, L"MSG (" + std::to_wstring(m_vDisplay.size()) + L")");
+        }
+        for (auto &msg : messages)
+        {
+            parseMessage({
+                { "time" , time(nullptr) },
+                { "room" , m_room.getRoomID() },
+                { "data", json::parse(msg) }
+            });
+        }
+    }
+    /*
     condition.wait(lock, [this]() {
         auto const &messages = m_room.retrieve();
         if (!messages.empty())
@@ -145,6 +181,7 @@ void MessageSession::disconnect()
         }
         return !messages.empty();
     });
+    */
 }
 
 void MessageSession::setFilter(std::wstring const &keyword)
@@ -279,6 +316,13 @@ void MessageSession::parseMessage(json const &object)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring timeZone = Bili::Settings::File::GetW("General", "timeZone");
+    std::wstring autoExport = Bili::Settings::File::GetW("Danmaku", "autoExport");
+    char separator = '\t';
+    if (autoExport == L"csv")
+    {
+        separator = ',';
+    }
+    bool exportMessage = autoExport == L"on" || autoExport == L"csv";
 
     json value = {
         { "mID", m_nNextMessageID++ },
@@ -351,8 +395,11 @@ void MessageSession::parseMessage(json const &object)
         value["info"] = data;
     }
 
-    m_vMessage.push_back(value);
+    // m_vMessage.push_back(value);
 
+    // ======================================= GENERATE LISTVIEW DISPLAY ==== //
+    // ==== Generate 9 columms of display text to fill the list view ======== //
+    // ====================================================================== //
     std::array<std::wstring, 9> display;
     display[0] = std::to_wstring(value["room"].get<ROOM>());
     display[1] = std::to_wstring(value["mID"].get<long>());
@@ -378,6 +425,74 @@ void MessageSession::parseMessage(json const &object)
             time += offset;
             t = std::gmtime(&time);
         }
+
+        // If message is on same day, use existing file.
+        bool createNewFile = exportMessage && m_pFile == nullptr &&
+            (t->tm_year != m_tRecent.tm_year || t->tm_mon != m_tRecent.tm_mon ||
+                t->tm_mday != m_tRecent.tm_mday);
+        if (createNewFile)
+        {
+            std::string name;
+            {
+                std::stringstream sst;
+                if (autoExport == L"csv")
+                {
+                    sst << std::put_time(t, "history\\%Y-%m-%d.csv");
+                }
+                else
+                {
+                    sst << std::put_time(t, "history\\%Y-%m-%d.txt");
+                }
+                name = sst.str();
+            }
+            try
+            {
+                // Open file in append mode and imbue UTF8 locale.
+                // Reference: https://stackoverflow.com/a/9869272/1377770
+                // m_file.imbue(std::locale(std::locale::empty(),
+                //     new std::codecvt_utf8<wchar_t, 0x10ffff, std::generate_header>));
+                // m_file.open(name, m_file.in | m_file.out | m_file.app | m_file.binary);
+                m_pFile = fopen(name.c_str(), "a+b");
+                // std::locale::global(std::locale(""));
+                if (m_pFile == nullptr)
+                {
+                    throw WinException(L"Cannot open file");
+                }
+                // Peek if file is empty.
+                // Reference: https://stackoverflow.com/a/13566193/1377770
+                fseek(m_pFile, 0, SEEK_END);
+                int size = ftell(m_pFile);
+                // If empty, create file with the new date.
+                if (size == 0)
+                {
+                    // Microsoft Excel needs BOM to decode UTF-8 CSV.
+                    // Reference: https://stackoverflow.com/a/11399444/1377770
+                    std::string bom("\xEF\xBB\xBF");
+                    fwrite(bom.data(), sizeof(char), bom.size(), m_pFile);
+                    // Output the header row upon creation of new file.
+                    std::wstringstream wss;
+                    wss << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_ROOM)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_MSGID)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_TIME)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_PROTOCOL)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_USERID)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_USERTYPE)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_USERNAME)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_BILI_SUMMARY)
+                        << separator << (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_LIVEMAID_TRIGGER);
+                    writeLine(wss.str());
+                }
+            }
+            catch (...)
+            {
+                throw WinException(L"Cannot open file");
+            }
+        }
+        else
+        {
+            // TODO: Read last message ID.
+        }
+        m_tRecent = *t;
 
         std::wstringstream wss;
         wss << std::put_time(t, L"%Y/%m/%d %H:%M:%S");
@@ -419,6 +534,21 @@ void MessageSession::parseMessage(json const &object)
     }
     m_vDisplay.push_back(display);
 
+    // Save message to file.
+    if (m_pFile != nullptr && exportMessage)
+    {
+        std::wstringstream wss;
+        for (size_t col = 0; col < display.size(); ++col)
+        {
+            wss << display[col];
+            if (col + 1 < display.size())
+            {
+                wss << separator;
+            }
+        }
+        writeLine(wss.str());
+    }
+
     if (m_keyword.length() > 0)
     {
         bool match = false;
@@ -456,5 +586,16 @@ void MessageSession::parseMessage(json const &object)
                 setFilterCount();
             }
         }
+    }
+}
+
+void MessageSession::writeLine(std::wstring const &content)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::string bytes = converter.to_bytes(content + L"\r\n");
+    if (m_pFile != nullptr)
+    {
+        fwrite(bytes.data(), sizeof(char), bytes.size(), m_pFile);
+        fflush(m_pFile);
     }
 }

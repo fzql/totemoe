@@ -1,9 +1,11 @@
-
+﻿
 #pragma once
 
 #include "stdafx.h"
 #include "win-control.hpp"
+#include "utf8/utf8.h"
 #include <regex>
+#include <fstream>
 
 class MessageSession
 {
@@ -25,7 +27,7 @@ public:
     void disconnect();
 
     LPCWSTR getColumn(int row, int col) const
-    { 
+    {
         LPCWSTR result;
         if (m_vFiltered.empty())
         {
@@ -62,6 +64,8 @@ public:
 private:
 
     void parseMessage(json const &object);
+
+    void writeLine(std::wstring const &content);
 private:
 
     bool m_bAutoReconnect;
@@ -79,6 +83,10 @@ private:
     std::wregex m_regex;
     // Used to set filter type.
     bool m_bFilterRegex;
+
+    std::tm m_tRecent;
+    // History file.
+    FILE *m_pFile;
 
     std::thread m_thread;
 
