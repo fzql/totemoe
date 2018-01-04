@@ -371,6 +371,46 @@ void Controller::notify(LPNMHDR lpNMHdr)
             lstrcpyn(item.pszText, content.c_str(), item.cchTextMax);
         }
     }
+    break;
+
+    case NM_DBLCLK:
+    {
+        NMITEMACTIVATE nmItem = *((LPNMITEMACTIVATE)lpNMHdr);
+        WCHAR szContent[MAX_LOADSTRING];
+        LVITEM item;
+        item.iItem = nmItem.iItem;
+        if (item.iItem != -1)
+        {
+            item.iSubItem = nmItem.iSubItem;
+            item.mask = LVIF_TEXT;
+            item.pszText = szContent;
+            item.cchTextMax = MAX_LOADSTRING;
+            ListView_GetItem(m_listView.getHandle(), &item);
+
+            std::wstring text(szContent);
+            if (OpenClipboard(m_hWnd))
+            {
+                const size_t size = (text.length() + 1) * sizeof(WCHAR);
+                HGLOBAL hClipboardData = GlobalAlloc(GMEM_MOVEABLE, size);
+                if (hClipboardData)
+                {
+                    LPWSTR pchData = (LPWSTR)GlobalLock(hClipboardData);
+                    if (pchData)
+                    {
+                        wcscpy(pchData, text.data());
+                        EmptyClipboard();
+                        GlobalUnlock(hClipboardData);
+                        SetClipboardData(CF_UNICODETEXT, hClipboardData);
+                    }
+                }
+                ResourceString status(I18N::GetHandle(), IDS_STATUS_COPYFIELD);
+                _swprintf_p(szContent, MAX_LOADSTRING, (LPCWSTR)status, text.c_str());
+                m_statusBar.setText(0, szContent);
+            }
+            CloseClipboard();
+        }
+    }
+    break;
     }
 }
 

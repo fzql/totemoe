@@ -37,7 +37,6 @@ LRESULT CALLBACK listViewProc(
         }
     }
     return TRUE;
-
     }
     return ::CallWindowProc(TableListView::defaultListViewProc,
         hWnd, message, wParam, lParam);

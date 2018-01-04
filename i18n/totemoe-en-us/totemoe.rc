@@ -304,6 +304,7 @@ BEGIN
     IDS_STATUS_FILTERRESET  "Filter has been reset"
     IDS_STATUS_FILTERRESULT_REGEX 
                             "Showing %1$d result(s) matching regex /%2$s/"
+    IDS_STATUS_COPYFIELD    """%1$s"" has been copied to the clipboard"
 END
 
 #endif    // English (United States) resources

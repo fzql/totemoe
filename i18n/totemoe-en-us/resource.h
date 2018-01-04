@@ -48,6 +48,7 @@
 #define IDS_STATUS_FILTERRESULT         136
 #define IDS_STATUS_FILTERRESET          137
 #define IDS_STATUS_FILTERRESULT_REGEX   138
+#define IDS_STATUS_COPYFIELD            139
 #define IDC_CONNECT_RESOLVE             1001
 #define IDC_CONNECT_ROOMID              1002
 #define IDC_COMBO_I18N_LANGUAGE         1009

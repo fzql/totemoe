@@ -297,7 +297,6 @@ public:
             iPos = ListView_GetNextItem(m_hWnd, iPos, LVNI_SELECTED);
         }
         std::wstring text = wss.str();
-        bool success = false;
         if (OpenClipboard(m_hWnd))
         {
             const size_t size = (text.length() + 1) * sizeof(WCHAR);
