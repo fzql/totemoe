@@ -447,11 +447,24 @@ void MessageSession::parseMessage(json const &object)
             }
             try
             {
-                // Open file in append mode and imbue UTF8 locale.
-                // Reference: https://stackoverflow.com/a/9869272/1377770
-                // m_file.imbue(std::locale(std::locale::empty(),
-                //     new std::codecvt_utf8<wchar_t, 0x10ffff, std::generate_header>));
-                // m_file.open(name, m_file.in | m_file.out | m_file.app | m_file.binary);
+                // Create a new "history" folder in case it does not exist.
+                // Otherwise, the file open statement below would not work.
+                BOOL code = CreateDirectory(L"history", NULL);
+                if (code == 0)
+                {
+                    // Failed to creat directory / directory already exists.
+                    // Reference: https://msdn.microsoft.com/en-us/library/windows/desktop/aa363855(v=vs.85).aspx
+                    if (GetLastError() != ERROR_ALREADY_EXISTS)
+                    {
+                        throw WinException(L"Cannot create \"history\" folder");
+                    }
+                }
+                // For files, work directly using C functionality because they
+                // are faster and locale-unaware.  You can't imagine how hard it
+                // is to output WCHAR (UTF-16) text into UTF-8 text files.  More
+                // than 10 hours has been wasted on trying to get std::wofstream
+                // to work.  If you can use std::wofstream and get the correct
+                // behavior, please submit a pull request.
                 m_pFile = fopen(name.c_str(), "a+b");
                 // std::locale::global(std::locale(""));
                 if (m_pFile == nullptr)
