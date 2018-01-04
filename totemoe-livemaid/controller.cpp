@@ -505,9 +505,9 @@ void Controller::size(int cx, int cy)
         heightListView -= heightCommand;
 
         m_commandType.setPosition(0, heightListView);
-        m_commandType.setSize(80, 25);
+        m_commandType.setSize(80, heightCommand);
         m_commandLine.setPosition(80, heightListView);
-        m_commandLine.setSize(cx - 80, 25);
+        m_commandLine.setSize(cx - 80, heightCommand);
         m_commandType.show();
         m_commandLine.show();
     }
