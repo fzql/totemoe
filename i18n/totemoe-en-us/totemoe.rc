@@ -305,6 +305,8 @@ BEGIN
     IDS_STATUS_FILTERRESULT_REGEX 
                             "Showing %1$d result(s) matching regex /%2$s/"
     IDS_STATUS_COPYFIELD    """%1$s"" has been copied to the clipboard"
+    IDS_ERROR               "Error"
+    IDS_ERROR_RESOLVE       "Cannot resolve Room ID."
 END
 
 #endif    // English (United States) resources

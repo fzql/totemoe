@@ -622,21 +622,30 @@ INT_PTR CALLBACK ConnectDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
             std::wstring content = szContent;
             ROOM resolve = std::stoi(content);
 
-            auto response = Bili::Room::GetResolve(resolve);
-
-            // Ensure that the room being resolved is the current room.
-
-            bool success = response.find("error") == response.end();
-            if (success)
+            json response = Bili::Room::GetResolve(resolve);
+            // If resolve was not successful
+            if (response.find("error") != response.end() ||
+                response.find("room_id") == response.end())
             {
-                ROOM roomid = response["room_id"].get<ROOM>();
-                SendMessage(GetParent(hDlg), WM_SET_ROOM, NULL, (LPARAM)roomid);
-                SendMessage(GetParent(hDlg), WM_CONNECT, NULL, NULL);
-                EndDialog(hDlg, LOWORD(wParam));
+                ResourceString error(I18N::GetHandle(), IDS_ERROR);
+                ResourceString info(I18N::GetHandle(), IDS_ERROR_RESOLVE);
+                ::MessageBox(hDlg, (LPCWSTR)info, (LPCWSTR)error, MB_OK);
             }
             else
             {
-                MessageBox(hDlg, L"LOL", L"NAY", MB_OK);
+                // Ensure that the room being resolved is the current room.
+                bool success = response.find("error") == response.end();
+                if (success)
+                {
+                    ROOM roomid = response["room_id"].get<ROOM>();
+                    ::SendMessage(GetParent(hDlg), WM_SET_ROOM, NULL, (LPARAM)roomid);
+                    ::SendMessage(GetParent(hDlg), WM_CONNECT, NULL, NULL);
+                    EndDialog(hDlg, LOWORD(wParam));
+                }
+                else
+                {
+                    ::MessageBox(hDlg, L"LOL", L"NAY", MB_OK);
+                }
             }
             return (INT_PTR)TRUE;
         }
