@@ -66,7 +66,7 @@ CAPTION "About ToteMoe LiveMaid"
 FONT 9, "Microsoft Sans Serif", 400, 0, 0x0
 BEGIN
     ICON            IDS_PROPPAGE_SESSION_SUCCESS,IDC_STATIC,14,14,20,20
-    LTEXT           "ToteMoe LiveMaid Version 0.2.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "ToteMoe LiveMaid Version 0.2.2",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2017 FrenzyLi",IDC_STATIC,42,26,114,8
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
 END
