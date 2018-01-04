@@ -427,9 +427,12 @@ void MessageSession::parseMessage(json const &object)
         }
 
         // If message is on same day, use existing file.
-        bool createNewFile = exportMessage && m_pFile == nullptr &&
-            (t->tm_year != m_tRecent.tm_year || t->tm_mon != m_tRecent.tm_mon ||
-                t->tm_mday != m_tRecent.tm_mday);
+        bool createNewFile = exportMessage && (
+            m_pFile == nullptr ||
+            m_exportSetting != autoExport ||
+            t->tm_year != m_tRecent.tm_year ||
+            t->tm_mon != m_tRecent.tm_mon ||
+            t->tm_mday != m_tRecent.tm_mday);
         if (createNewFile)
         {
             std::string name;
@@ -444,6 +447,7 @@ void MessageSession::parseMessage(json const &object)
                     sst << std::put_time(t, "history\\%Y-%m-%d.txt");
                 }
                 name = sst.str();
+                m_exportSetting = autoExport;
             }
             try
             {

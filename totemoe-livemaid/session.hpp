@@ -83,8 +83,10 @@ private:
     std::wregex m_regex;
     // Used to set filter type.
     bool m_bFilterRegex;
-
+    // The timestamp of the most recent message.
     std::tm m_tRecent;
+    // The format setting of the history file.
+    std::wstring m_exportSetting;
     // History file.
     FILE *m_pFile;
 
