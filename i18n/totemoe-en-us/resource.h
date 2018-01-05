@@ -67,6 +67,10 @@
 #define IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT 1021
 #define IDC_CHECK_DANMAKU_FILTER_UNKNOWN 1022
 #define IDC_CHECK_DANMAKU_SMALLTV       1023
+#define IDC_SLIDER_DANMAKU              1024
+#define IDC_SLIDER_GIFTING              1025
+#define IDC_SLIDER_ANNOUNCEMENT         1026
+#define IDC_SLIDER_UNKNOWN              1027
 #define IDM_HELP                        32775
 #define ID_HELP_ABOUT                   40001
 #define ID_HELP_HELP                    40002
@@ -99,7 +103,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40040
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

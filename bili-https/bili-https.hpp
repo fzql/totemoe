@@ -68,15 +68,15 @@ namespace Bili
         {
         public:
             // Danmaku color
-            size_t color;
+            int color;
             // Danmaku size
-            size_t fontsize;
+            int fontsize;
             // Danmaku mode
-            size_t mode;
+            int mode;
             // Random seed
-            size_t rnd;
+            time_t rnd;
             // Room to send to
-            size_t roomid;
+            int roomid;
             // Danmaku content
             std::wstring msg;
             // converter
@@ -87,10 +87,10 @@ namespace Bili
                 Bili::Settings::File::Load();
                 try
                 {
-                    color = (size_t)std::stoi(Bili::Settings::File::Get("SendDanmaku", "color"));
-                    fontsize = (size_t)std::stoi(Bili::Settings::File::Get("SendDanmaku", "fontsize"));
-                    mode = (size_t)std::stoi(Bili::Settings::File::Get("SendDanmaku", "mode"));
-                    rnd = (size_t)time(0);
+                    color = std::stoi(Bili::Settings::Get(L"SendDanmaku", L"color"));
+                    fontsize = std::stoi(Bili::Settings::Get(L"SendDanmaku", L"fontsize"));
+                    mode = std::stoi(Bili::Settings::Get(L"SendDanmaku", L"mode"));
+                    rnd = time(0);
                 }
                 catch (...)
                 {

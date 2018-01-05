@@ -318,9 +318,9 @@ void MessageSession::parseMessage(json const &object)
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
     // Preferences: Time Zone.
-    std::wstring timeZone = Bili::Settings::File::GetW("General", "timeZone");
+    std::wstring timeZone = Bili::Settings::Get(L"General", L"timeZone");
     // Preferences: TXT or CSV output.
-    std::wstring autoExport = Bili::Settings::File::GetW("Danmaku", "autoExport");
+    std::wstring autoExport = Bili::Settings::Get(L"Danmaku", L"autoExport");
     bool exportMessage = autoExport == L"on" || autoExport == L"csv";
     // Separator for TXT / CSV output.
     char separator = '\t';

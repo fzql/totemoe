@@ -4,6 +4,7 @@
 #include "stdafx.hpp"
 #include "bili-settings/bili-settings.hpp"
 #include <string>
+#include <codecvt>
 #include <curl/curl.h>
 
 static char errorBuffer[CURL_ERROR_SIZE];
@@ -148,7 +149,12 @@ static bool initHttpsGet(CURL *&conn, const char *url,
     }
 
     Bili::Settings::File::Load();
-    std::string caPath = Bili::Settings::File::Get("Security", "liveCertificateChain");
+    std::string caPath;
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        auto s = Bili::Settings::Get(L"Security", L"liveCertificateChain");
+        caPath = converter.to_bytes(s);
+    }
     code = curl_easy_setopt(conn, CURLOPT_CAINFO, caPath.c_str());
 
     std::string completeURL = url;
@@ -438,7 +444,12 @@ static bool initHttpsPost(CURL *&conn, const char *url,
     }
 
     Bili::Settings::File::Load();
-    std::string caPath = Bili::Settings::File::Get("Security", "liveCertificateChain");
+    std::string caPath;
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        auto s = Bili::Settings::Get(L"Security", L"liveCertificateChain");
+        caPath = converter.to_bytes(s);
+    }
     code = curl_easy_setopt(conn, CURLOPT_CAINFO, caPath.c_str());
 
     code = curl_easy_setopt(conn, CURLOPT_ERRORBUFFER, errorBuffer);

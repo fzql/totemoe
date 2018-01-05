@@ -17,31 +17,31 @@ namespace Bili
     {
         namespace File
         {
-            static CSimpleIniA ini;
+            static CSimpleIni inifile;
 
-            static SI_Error SetDefault(std::string const &section,
-                std::string const &key, std::string const &value);
+            static CSimpleIni def;
+
+            static SI_Error SetDefault(std::wstring const &section,
+                std::wstring const &key, std::wstring const &value);
 
             BILISETTINGS_API SI_Error Load();
 
             BILISETTINGS_API SI_Error Save();
-
-            BILISETTINGS_API char const *Get(std::string const &section,
-                std::string const &key, char const *value = (char const *)NULL);
-
-            BILISETTINGS_API std::wstring GetW(std::string const &section,
-                std::string const &key, char const *value = (char const *)NULL);
-
-            BILISETTINGS_API SI_Error Set(std::string const &section,
-                std::string const &key, char const *value = (char const *)NULL);
-
-            BILISETTINGS_API SI_Error SetW(std::string const &section,
-                std::string const &key, std::wstring const &value = std::wstring());
         }
 
+        BILISETTINGS_API LPCWSTR Get(std::wstring const &section,
+            std::wstring const &key, LPCWSTR value = (LPCWSTR)NULL);
+
+        BILISETTINGS_API SI_Error Set(std::wstring const &section,
+            std::wstring const &key, LPCWSTR value = (LPCWSTR)NULL);
+
+        BILISETTINGS_API std::wstring GetDefault(std::wstring const &section,
+            std::wstring const &key);
+
         BILISETTINGS_API std::string GetAPI(
-            std::string const &server, std::string const &request);
+            std::wstring const &server, std::wstring const &request);
 
         BILISETTINGS_API json GetCredentials();
+
     }
 }

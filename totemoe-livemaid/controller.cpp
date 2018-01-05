@@ -122,8 +122,8 @@ void Controller::command(int cmd)
         int selection = cmd - IDM_DANMAKU_COLOR_BASE;
         CheckMenuRadioItem(m_hDanmakuColor,
             0, m_vDanmakuColors.size() - 1, selection, MF_BYPOSITION);
-        std::string color = std::to_string(m_vDanmakuColors[selection].value);
-        Bili::Settings::File::Set("SendDanmaku", "color", color.c_str());
+        std::wstring color = std::to_wstring(m_vDanmakuColors[selection].value);
+        Bili::Settings::Set(L"SendDanmaku", L"color", color.c_str());
         Bili::Settings::File::Save();
     }
 }
@@ -265,8 +265,8 @@ void Controller::initMenu(HMENU hMenu)
             {
                 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
-                std::string mode = Bili::Settings::File::Get("SendDanmaku", "mode");
-                std::string color = Bili::Settings::File::Get("SendDanmaku", "color");
+                std::wstring mode = Bili::Settings::Get(L"SendDanmaku", L"mode");
+                std::wstring color = Bili::Settings::Get(L"SendDanmaku", L"color");
                 int colorCode = std::stoi(color);
 
                 m_hDanmakuMode = CreatePopupMenu();
@@ -290,7 +290,7 @@ void Controller::initMenu(HMENU hMenu)
                             MF_BYCOMMAND | MF_DISABLED);
                     }
                 }
-                if (mode == "1")
+                if (mode == L"1")
                 {
                     CheckMenuRadioItem(m_hDanmakuMode,
                         0, m_vDanmakuModes.size() - 1, 0, MF_BYPOSITION);
@@ -557,8 +557,7 @@ void Controller::submit()
     }
     else if (selection == (LPCWSTR)ResourceString(I18N::GetHandle(), IDS_COMMANDTYPE_FILTERSTRING))
     {
-        std::wstring filterRegex =
-            Bili::Settings::File::GetW("Danmaku", "filterRegex");
+        std::wstring filterRegex = Bili::Settings::Get(L"Danmaku", L"filterRegex");
         if (filterRegex == L"on")
         {
             m_session.setFilterRegex(content);

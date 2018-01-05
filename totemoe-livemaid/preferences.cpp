@@ -26,8 +26,7 @@ INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM
         SendMessage(hLanguage, CB_SETCURSEL, (WPARAM)(names.size()), NULL);
 
         // Configure Time Zone.
-        std::wstring timeZoneSetting
-            = Bili::Settings::File::GetW("General", "timeZone");
+        std::wstring timeZoneSetting = Bili::Settings::Get(L"General", L"timeZone");
         HWND hTimeZone = GetDlgItem(hDlg, IDC_COMBO_I18N_TIMEZONE);
         {
             ResourceString system(I18N::GetHandle(), IDS_PROPPAGE_I18N_TIMEZONE_SYSTEM);
@@ -104,11 +103,11 @@ INT_PTR CALLBACK I18N_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM
             ResourceString sysTimeZone(I18N::GetHandle(), IDS_PROPPAGE_I18N_TIMEZONE_SYSTEM);
             if (timeZoneSetting == (LPCWSTR)sysTimeZone)
             {
-                Bili::Settings::File::Set("General", "timeZone", "system");
+                Bili::Settings::Set(L"General", L"timeZone", L"system");
             }
             else
             {
-                Bili::Settings::File::SetW("General", "timeZone", szContent);
+                Bili::Settings::Set(L"General", L"timeZone", szContent);
             }
 
             ::SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
@@ -127,55 +126,88 @@ INT_PTR CALLBACK Danmaku_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
     {
     case WM_INITDIALOG:
     {
-        // Get handles to protocol filtering checkboxes.
-        HWND hFilterDanmaku = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_DANMAKU);
-        HWND hFilterGifting = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_GIFTING);
-        HWND hFilterAnnouncement = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT);
-        HWND hFilterUnknown = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_UNKNOWN);
+        // Get handles to protocol filtering sliders.
+        HWND hFilterDanmaku = ::GetDlgItem(hDlg, IDC_SLIDER_DANMAKU);
+        HWND hFilterGifting = ::GetDlgItem(hDlg, IDC_SLIDER_GIFTING);
+        HWND hFilterAnnouncement = ::GetDlgItem(hDlg, IDC_SLIDER_ANNOUNCEMENT);
+        HWND hFilterUnknown = ::GetDlgItem(hDlg, IDC_SLIDER_UNKNOWN);
 
+        // Obtain handles to the rest of the checkboxes.
         HWND hFilterRegex = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_REGEX);
         HWND hFilterSmallTV = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_SMALLTV);
         HWND hExport = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT);
         HWND hExportCSV = ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT_CSV);
 
-        std::wstring protocols = Bili::Settings::File::GetW("Danmaku", "filterProtocol");
-        // TODO: FIX THIS UGLY CODE.
-        protocols += L",";
-        std::wstring delimiter = L",";
-        size_t pos = 0;
-        while ((pos = protocols.find(L",")) != std::wstring::npos)
-        {
-            std::wstring protocol = protocols.substr(0, pos);
-            protocols.erase(0, pos + delimiter.length());
-            if (protocol == L"danmaku")
-            {
-                Button_SetCheck(hFilterDanmaku, TRUE);
-            }
-            else if (protocol == L"gifting")
-            {
-                Button_SetCheck(hFilterGifting, TRUE);
-            }
-            else if (protocol == L"announcement")
-            {
-                Button_SetCheck(hFilterAnnouncement, TRUE);
-            }
-            else if (protocol == L"unknown")
-            {
-                Button_SetCheck(hFilterUnknown, TRUE);
-            }
-        }
+        int mint = 0;
+        int maxt = 3;
+        // Initiate sliders to having four ticks only.
+        ::SendMessage(hFilterDanmaku, TBM_SETRANGE, TRUE, MAKELPARAM(mint, maxt));
+        ::SendMessage(hFilterGifting, TBM_SETRANGE, TRUE, MAKELPARAM(mint, maxt));
+        ::SendMessage(hFilterAnnouncement, TBM_SETRANGE, TRUE, MAKELPARAM(mint, maxt));
+        ::SendMessage(hFilterUnknown, TBM_SETRANGE, TRUE, MAKELPARAM(mint, maxt));
 
-        std::wstring filterRegex = Bili::Settings::File::GetW("Danmaku", "filterRegex");
+        int position;
+        // Set the sliders.
+        try
+        {
+            auto p = Bili::Settings::Get(L"Danmaku", L"filterDanmaku");
+            position = std::stoi(p);
+        }
+        catch (...)
+        {
+            auto p = Bili::Settings::GetDefault(L"Danmaku", L"filterDanmaku");
+            position = std::stoi(p);
+        }
+        ::SendMessage(hFilterDanmaku, TBM_SETPOS, TRUE, (LPARAM)position);
+
+        try
+        {
+            auto p = Bili::Settings::Get(L"Danmaku", L"filterGifting");
+            position = std::stoi(p);
+        }
+        catch (...)
+        {
+            auto p = Bili::Settings::GetDefault(L"Danmaku", L"filterGifting");
+            position = std::stoi(p);
+        }
+        ::SendMessage(hFilterGifting, TBM_SETPOS, TRUE, (LPARAM)position);
+
+        try
+        {
+            auto p = Bili::Settings::Get(L"Danmaku", L"filterAnnouncement");
+            position = std::stoi(p);
+        }
+        catch (...)
+        {
+            auto p = Bili::Settings::GetDefault(L"Danmaku", L"filterAnnouncement");
+            position = std::stoi(p);
+        }
+        ::SendMessage(hFilterAnnouncement, TBM_SETPOS, TRUE, (LPARAM)position);
+
+        try
+        {
+            auto p = Bili::Settings::Get(L"Danmaku", L"filterUnknown");
+            position = std::stoi(p);
+        }
+        catch (...)
+        {
+            auto p = Bili::Settings::GetDefault(L"Danmaku", L"filterUnknown");
+            position = std::stoi(p);
+        }
+        ::SendMessage(hFilterUnknown, TBM_SETPOS, TRUE, (LPARAM)position);
+
+
+        std::wstring filterRegex = Bili::Settings::Get(L"Danmaku", L"filterRegex");
         if (filterRegex == L"on")
         {
             Button_SetCheck(hFilterRegex, TRUE);
         }
-        std::wstring filterSmallTV = Bili::Settings::File::GetW("Danmaku", "filterSmallTV");
+        std::wstring filterSmallTV = Bili::Settings::Get(L"Danmaku", L"filterSmallTV");
         if (filterSmallTV == L"on")
         {
             Button_SetCheck(hFilterSmallTV, TRUE);
         }
-        std::wstring autoExport = Bili::Settings::File::GetW("Danmaku", "autoExport");
+        std::wstring autoExport = Bili::Settings::Get(L"Danmaku", L"autoExport");
         if (autoExport == L"on" || autoExport == L"csv")
         {
             Button_SetCheck(hExport, TRUE);
@@ -231,16 +263,17 @@ INT_PTR CALLBACK Danmaku_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 
         case PSN_APPLY:
         {
-            // Get handles to protocol filtering checkboxes.
+            // Get handles to protocol filtering slider controls.
             HWND hFilterDanmaku =
-                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_DANMAKU);
+                ::GetDlgItem(hDlg, IDC_SLIDER_DANMAKU);
             HWND hFilterGifting =
-                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_GIFTING);
+                ::GetDlgItem(hDlg, IDC_SLIDER_GIFTING);
             HWND hFilterAnnouncement =
-                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_ANNOUNCEMENT);
+                ::GetDlgItem(hDlg, IDC_SLIDER_ANNOUNCEMENT);
             HWND hFilterUnknown =
-                ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_FILTER_UNKNOWN);
+                ::GetDlgItem(hDlg, IDC_SLIDER_UNKNOWN);
 
+            // Get handles to other checkboxes.
             HWND hFilterRegex =
                 ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_REGEX);
             HWND hFilterSmallTV =
@@ -250,66 +283,60 @@ INT_PTR CALLBACK Danmaku_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
             HWND hExportCSV =
                 ::GetDlgItem(hDlg, IDC_CHECK_DANMAKU_EXPORT_CSV);
 
-            std::wstring filterProtocol;
-            std::vector<std::wstring> vProtocols;
-            if (::SendMessage(hFilterDanmaku, BM_GETCHECK, NULL, NULL))
-            {
-                vProtocols.push_back(L"danmaku");
-            }
-            if (::SendMessage(hFilterGifting, BM_GETCHECK, NULL, NULL))
-            {
-                vProtocols.push_back(L"gifting");
-            }
-            if (::SendMessage(hFilterAnnouncement, BM_GETCHECK, NULL, NULL))
-            {
-                vProtocols.push_back(L"announcement");
-            }
-            if (::SendMessage(hFilterUnknown, BM_GETCHECK, NULL, NULL))
-            {
-                vProtocols.push_back(L"unknown");
-            }
-            for (size_t index = 0; index < vProtocols.size(); ++index)
-            {
-                filterProtocol += vProtocols[index];
-                if (index + 1 < vProtocols.size())
-                {
-                    filterProtocol += L",";
-                }
-            }
-            Bili::Settings::File::SetW("Danmaku", "filterProtocol", filterProtocol);
+            std::wstring filterLevel;
+            // Record protocol filtering levels.
+            filterLevel = std::to_wstring(
+                ::SendMessage(hFilterDanmaku, TBM_GETPOS, NULL, NULL));
+            Bili::Settings::Set(
+                L"Danmaku", L"filterDanmaku", filterLevel.c_str());
+
+            filterLevel = std::to_wstring(
+                ::SendMessage(hFilterGifting, TBM_GETPOS, NULL, NULL));
+            Bili::Settings::Set(
+                L"Danmaku", L"filterGifting", filterLevel.c_str());
+
+            filterLevel = std::to_wstring(
+                ::SendMessage(hFilterAnnouncement, TBM_GETPOS, NULL, NULL));
+            Bili::Settings::Set(
+                L"Danmaku", L"filterAnnouncement", filterLevel.c_str());
+
+            filterLevel = std::to_wstring(
+                ::SendMessage(hFilterUnknown, TBM_GETPOS, NULL, NULL));
+            Bili::Settings::Set(
+                L"Danmaku", L"filterUnknown", filterLevel.c_str());
 
             if (::SendMessage(hFilterRegex, BM_GETCHECK, NULL, NULL))
             {
-                Bili::Settings::File::SetW("Danmaku", "filterRegex", L"on");
+                Bili::Settings::Set(L"Danmaku", L"filterRegex", L"on");
             }
             else
             {
-                Bili::Settings::File::SetW("Danmaku", "filterRegex", L"off");
+                Bili::Settings::Set(L"Danmaku", L"filterRegex", L"off");
             }
 
             if (::SendMessage(hFilterSmallTV, BM_GETCHECK, NULL, NULL))
             {
-                Bili::Settings::File::SetW("Danmaku", "filterSmallTV", L"on");
+                Bili::Settings::Set(L"Danmaku", L"filterSmallTV", L"on");
             }
             else
             {
-                Bili::Settings::File::SetW("Danmaku", "filterSmallTV", L"off");
+                Bili::Settings::Set(L"Danmaku", L"filterSmallTV", L"off");
             }
 
             if (::SendMessage(hExport, BM_GETCHECK, NULL, NULL))
             {
                 if (::SendMessage(hExportCSV, BM_GETCHECK, NULL, NULL))
                 {
-                    Bili::Settings::File::SetW("Danmaku", "autoExport", L"csv");
+                    Bili::Settings::Set(L"Danmaku", L"autoExport", L"csv");
                 }
                 else
                 {
-                    Bili::Settings::File::SetW("Danmaku", "autoExport", L"on");
+                    Bili::Settings::Set(L"Danmaku", L"autoExport", L"on");
                 }
             }
             else
             {
-                Bili::Settings::File::SetW("Danmaku", "autoExport", L"off");
+                Bili::Settings::Set(L"Danmaku", L"autoExport", L"off");
             }
 
             ::SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
@@ -329,9 +356,9 @@ INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
     case WM_INITDIALOG:
     {
         // Populate session data from settings.
-        std::wstring sessionUID = Bili::Settings::File::GetW("Session", "DedeUserID");
-        std::wstring sessionChksm = Bili::Settings::File::GetW("Session", "DedeUserID__ckMd5");
-        std::wstring sessionData = Bili::Settings::File::GetW("Session", "SESSDATA");
+        std::wstring sessionUID = Bili::Settings::Get(L"Session", L"DedeUserID");
+        std::wstring sessionChksm = Bili::Settings::Get(L"Session", L"DedeUserID__ckMd5");
+        std::wstring sessionData = Bili::Settings::Get(L"Session", L"SESSDATA");
         ::SetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID, sessionUID.c_str());
         ::SetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID__CKMD5, sessionChksm.c_str());
         ::SetDlgItemText(hDlg, IDC_EDIT_SESSDATA, sessionData.c_str());
@@ -436,11 +463,11 @@ INT_PTR CALLBACK Session_PropDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPA
         {
             WCHAR szText[MAX_LOADSTRING];
             ::GetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID, szText, MAX_LOADSTRING);
-            Bili::Settings::File::SetW("Session", "DedeUserID", szText);
+            Bili::Settings::Set(L"Session", L"DedeUserID", szText);
             ::GetDlgItemText(hDlg, IDC_EDIT_DEDEUSERID__CKMD5, szText, MAX_LOADSTRING);
-            Bili::Settings::File::SetW("Session", "DedeUserID__ckMd5", szText);
+            Bili::Settings::Set(L"Session", L"DedeUserID__ckMd5", szText);
             ::GetDlgItemText(hDlg, IDC_EDIT_SESSDATA, szText, MAX_LOADSTRING);
-            Bili::Settings::File::SetW("Session", "SESSDATA", szText);
+            Bili::Settings::Set(L"Session", L"SESSDATA", szText);
             ::SetWindowLong(hDlg, DWL_MSGRESULT, PSNRET_NOERROR);
             // ::SendMessage(hDlg, PSM_CANCELTOCLOSE, NULL, NULL);
             return TRUE;

@@ -28,7 +28,7 @@ std::string Bili::Server::GetURI(ROOM roomid)
     // Get secure websocket address
     std::stringstream sst;
     sst << "ws";
-    if (false && strcmp(Bili::Settings::File::Get("Security", "enforceHttps"), "1") == 0)
+    if (false && wcscmp(Bili::Settings::Get(L"Security", L"enforceHttps"), L"1") == 0)
     {
         port = info.at("dm_wss_port").get<std::string>();
         sst << "s";
@@ -46,7 +46,12 @@ std::string Bili::Server::GetURI(ROOM roomid)
         return "error";
     }
     Bili::Settings::File::Load();
-    std::string resource = Bili::Settings::File::Get("WebSocketEndPoint", "connect");
+    std::string resource;
+    {
+        auto s = Bili::Settings::Get(L"WebSocketEndPoint", L"connect");
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        resource = converter.to_bytes(s);
+    }
     sst << "://" << address << ":" << portNum << resource;
     // Get URI
     result = sst.str();

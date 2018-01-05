@@ -4,34 +4,61 @@
 #include "stdafx.hpp"
 #include "bili-settings.hpp"
 #include <sstream>
+#include <codecvt>
+
+LPCWSTR Bili::Settings::Get(
+    std::wstring const &section, std::wstring const &key, LPCWSTR value)
+{
+    return File::inifile.GetValue(section.c_str(), key.c_str(), value);
+}
+
+SI_Error Bili::Settings::Set(
+    std::wstring const &section, std::wstring const &key, LPCWSTR value)
+{
+    return File::inifile.SetValue(section.c_str(), key.c_str(), value);
+}
+
+
+std::wstring Bili::Settings::GetDefault(std::wstring const &section,
+    std::wstring const &key)
+{
+    return File::def.GetValue(section.c_str(), key.c_str(), L"");
+}
 
 std::string Bili::Settings::GetAPI(
-    std::string const &server, std::string const &request)
+    std::wstring const &server, std::wstring const &request)
 {
     File::Load();
-    std::string useHttps = File::Get("Security", "enforceHttps");
-    std::string endPoint = File::Get("EndPoint", server);
-    std::string resource;
-    if (server == "live")
+    std::wstring useHttps = Get(L"Security", L"enforceHttps");
+    std::wstring endPoint = Get(L"EndPoint", server);
+    std::wstring resource;
+    if (server == L"live")
     {
-        resource = File::Get("LiveEndPoint", request);
+        resource = Get(L"LiveEndPoint", request);
     }
-    std::stringstream sst;
-    sst << "http";
-    if (useHttps == "1")
+    std::wstringstream wss;
+    wss << "http";
+    if (useHttps == L"1")
     {
-        sst << "s";
+        wss << "s";
     }
-    sst << "://" << endPoint << resource;
-    return sst.str();
+    wss << "://" << endPoint << resource;
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.to_bytes(wss.str());
 }
 
 json Bili::Settings::GetCredentials()
 {
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     File::Load();
+
+    std::string a = converter.to_bytes(Get(L"Session", L"DedeUserID"));
+    std::string b = converter.to_bytes(Get(L"Session", L"DedeUserID__ckMd5"));
+    std::string c = converter.to_bytes(Get(L"Session", L"SESSDATA"));
+
     return json{
-        { "DedeUserID", File::Get("Session", "DedeUserID") },
-        { "DedeUserID__ckMd5", File::Get("Session", "DedeUserID__ckMd5") },
-        { "SESSDATA", File::Get("Session", "SESSDATA") }
+        { "DedeUserID", a },
+        { "DedeUserID__ckMd5", b },
+        { "SESSDATA", c }
     };
 }
