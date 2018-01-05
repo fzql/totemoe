@@ -314,22 +314,31 @@ void MessageSession::setFilterCount()
 
 void MessageSession::parseMessage(json const &object)
 {
+    // Converter between UTF-8 (std::string) and UTF-16 (std::wstring).
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+    // Preferences: Time Zone.
     std::wstring timeZone = Bili::Settings::File::GetW("General", "timeZone");
+    // Preferences: TXT or CSV output.
     std::wstring autoExport = Bili::Settings::File::GetW("Danmaku", "autoExport");
+    bool exportMessage = autoExport == L"on" || autoExport == L"csv";
+    // Separator for TXT / CSV output.
     char separator = '\t';
     if (autoExport == L"csv")
     {
         separator = ',';
     }
-    bool exportMessage = autoExport == L"on" || autoExport == L"csv";
 
+    // ========================================== FIRST ROUND OF PARSING ==== //
+    // ==== Parse the raw protocols and save data into the database ========= //
+    // ====================================================================== //
     json value = {
         { "mID", m_nNextMessageID++ },
         { "room", object["room"] },
         { "time", object["time"] }
     };
     const json &data = object["data"];
+    // Obtain the server-side protocol name.
     std::string protocol = data["cmd"];
     if (protocol == "WEBSOCKET")
     {
@@ -388,6 +397,20 @@ void MessageSession::parseMessage(json const &object)
             { "price", info["price"] }
         };
         value["count"] = info["num"];
+    }
+    else if (protocol == "SYS_MSG")
+    {
+        value["protocol"] = "Announcement";
+        value["info"] = data.dump();
+
+        const json &info = data;
+        value["content"] = data["msg"];
+        // Turn HTTP into HTTPS for security.
+        std::string url = data["url"];
+        std::regex regex_http("^(http):\\/\\/");
+        url = std::regex_replace(url, regex_http, "https");
+        value["url"] = url;
+        value["rep"] = data["rep"].get<int>();
     }
     else
     {
@@ -548,6 +571,10 @@ void MessageSession::parseMessage(json const &object)
             }
             display[7] = wss.str();
         }
+    }
+    else if (value["protocol"] == "Announcement")
+    {
+        display[7] = converter.from_bytes(value["content"].get<std::string>());
     }
     m_vDisplay.push_back(display);
 
