@@ -63,7 +63,7 @@ public:
     void setAutoReconnect(bool option = true) { m_bAutoReconnect = option; };
 private:
 
-    void parseMessage(json const &object);
+    void parseMessage(json const &object, std::string const &raw);
 
     void writeLine(std::wstring const &content);
 private:

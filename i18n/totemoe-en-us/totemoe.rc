@@ -119,8 +119,8 @@ BEGIN
     CONTROL         "Export to CSV file instead",IDC_CHECK_DANMAKU_EXPORT_CSV,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,144,90,10
     GROUPBOX        "Filter Protocol",IDC_STATIC,7,7,196,92
-    CONTROL         "Filter Danmaku sent because of SmallTV Raffle",IDC_CHECK_DANMAKU_SMALLTV,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,118,154,10
+    CONTROL         "Hide Danmaku generated from SmallTV Raffle",IDC_CHECK_DANMAKU_SMALLTV,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,118,151,10
     LTEXT           "Danmaku",IDC_STATIC,15,34,29,8
     CONTROL         "",IDC_SLIDER_DANMAKU,"msctls_trackbar32",TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,72,29,124,15
     LTEXT           "Gifting",IDC_STATIC,15,50,20,8

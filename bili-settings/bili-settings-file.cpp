@@ -31,8 +31,8 @@ SI_Error Bili::Settings::File::Load()
         SET_DEFAULT(L"Danmaku", L"filterDanmaku", L"3");
         SET_DEFAULT(L"Danmaku", L"filterGifting", L"2");
         SET_DEFAULT(L"Danmaku", L"filterAnnouncement", L"2");
-        SET_DEFAULT(L"Danmaku", L"filterUnknown", L"0");
-        SET_DEFAULT(L"Danmaku", L"filterSmallTV", L"off");
+        SET_DEFAULT(L"Danmaku", L"filterUnknown", L"1");
+        SET_DEFAULT(L"Danmaku", L"filterSmallTV", L"on");
         SET_DEFAULT(L"Danmaku", L"filterRegex", L"off");
         // [SendDanmaku]
         SET_DEFAULT(L"SendDanmaku", L"color", L"16777215");

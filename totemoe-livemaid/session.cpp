@@ -105,7 +105,7 @@ void MessageSession::connect()
                         { "time" , time(nullptr) },
                         { "room" , m_room.getRoomID() },
                         { "data", data }
-                    });
+                    }, msg);
                 }
             }
             if (m_bStopThread)
@@ -136,8 +136,11 @@ void MessageSession::disconnect()
     m_bStopThread = true;
     m_room.disconnect(websocketpp::close::status::normal, "User disconnect");
     // Close file.
-    fclose(m_pFile);
-    m_pFile = nullptr;
+    if (m_pFile != nullptr)
+    {
+        fclose(m_pFile);
+        m_pFile = nullptr;
+    }
     // Shut down thread.
     if (m_thread.joinable())
     {
@@ -158,7 +161,7 @@ void MessageSession::disconnect()
                 { "time" , time(nullptr) },
                 { "room" , m_room.getRoomID() },
                 { "data", json::parse(msg) }
-            });
+            }, msg);
         }
     }
     /*
@@ -312,7 +315,7 @@ void MessageSession::setFilterCount()
     }
 }
 
-void MessageSession::parseMessage(json const &object)
+void MessageSession::parseMessage(json const &object, std::string const &raw)
 {
     // Converter between UTF-8 (std::string) and UTF-16 (std::wstring).
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -329,18 +332,21 @@ void MessageSession::parseMessage(json const &object)
         separator = ',';
     }
 
+    // Flag to set if Danmaku is generated due to SmallTV raffle.
+    bool isSmallTVRaffle = false;
+
     // ========================================== FIRST ROUND OF PARSING ==== //
-    // ==== Parse the raw protocols and save data into the database ========= //
+    // ==== Parse the server protocols and save data into the database ====== //
     // ====================================================================== //
     json value = {
-        { "mID", m_nNextMessageID++ },
+        { "mID", m_nNextMessageID },
         { "room", object["room"] },
         { "time", object["time"] }
     };
     const json &data = object["data"];
     // Obtain the server-side protocol name.
-    std::string protocol = data["cmd"];
-    if (protocol == "WEBSOCKET")
+    std::string serverProtocol = data["cmd"];
+    if (serverProtocol == "WEBSOCKET")
     {
         value["protocol"] = "WebSocket";
         const json &info = data["msg"];
@@ -368,7 +374,7 @@ void MessageSession::parseMessage(json const &object)
 
         // value["info"] = data["msg"];
     }
-    else if (protocol == "DANMU_MSG")
+    else if (serverProtocol == "DANMU_MSG")
     {
         value["protocol"] = "Danmaku";
         value["info"] = data["info"];
@@ -379,8 +385,19 @@ void MessageSession::parseMessage(json const &object)
             { "name", info[2][1] }
         };
         value["content"] = info[1];
+
+        // Detect if danmaku is generated from SmallTV Raffle.
+        if (value["content"].get<std::string>() ==
+            "- ( \xE3\x82\x9C- \xE3\x82\x9C)\xE3\x81\xA4\xE3\x83\xAD"
+            " \xE4\xB9\xBE\xE6\x9D\xAF~ - bilibili")
+        {
+            if (raw.find("{\"cmd\":\"DANMU_MSG\"") == 0)
+            {
+                isSmallTVRaffle = true;
+            }
+        }
     }
-    else if (protocol == "SEND_GIFT")
+    else if (serverProtocol == "SEND_GIFT")
     {
         value["protocol"] = "Gifting";
         value["info"] = data["data"];
@@ -398,7 +415,7 @@ void MessageSession::parseMessage(json const &object)
         };
         value["count"] = info["num"];
     }
-    else if (protocol == "SYS_MSG")
+    else if (serverProtocol == "SYS_MSG")
     {
         value["protocol"] = "Announcement";
         value["info"] = data.dump();
@@ -418,7 +435,58 @@ void MessageSession::parseMessage(json const &object)
         value["info"] = data;
     }
 
-    // m_vMessage.push_back(value);
+    // Preferences: Do we ignore this message?
+    std::string protocol = value["protocol"];
+    int filterLevel;
+    if (protocol == "WebSocket")
+    {
+        // Do not block WebSocket protocol.  Always shown.
+        filterLevel = 3;
+    }
+    else if (protocol == "Danmaku")
+    {
+        filterLevel = std::stoi(Bili::Settings::Get(L"Danmaku", L"filterDanmaku"));
+    }
+    else if (protocol == "Gifting")
+    {
+        filterLevel = std::stoi(Bili::Settings::Get(L"Danmaku", L"filterGifting"));
+    }
+    else if (protocol == "Announcement")
+    {
+        filterLevel = std::stoi(Bili::Settings::Get(L"Danmaku", L"filterAnnouncement"));
+    }
+    else
+    {
+        filterLevel = std::stoi(Bili::Settings::Get(L"Danmaku", L"filterUnknown"));
+    }
+
+    // Ignore this message of filterLevel is 0.
+    if (filterLevel == 0)
+    {
+        return;
+    }
+
+    // Increment message ID if message is not ignored.
+    m_nNextMessageID += 1;
+
+    // ================================================ SAVE TO DATABASE ==== //
+    // ==== TODO ============================================================ //
+    // ====================================================================== //
+
+    // Do not display this message if filterLevel is 1.
+    if (filterLevel == 1)
+    {
+        return;
+    }
+    // Do not display this message if it is generated by SmallTV Raffle.
+    if (isSmallTVRaffle)
+    {
+        std::wstring s = Bili::Settings::Get(L"Danmaku", L"filterSmallTV");
+        if (s == L"on")
+        {
+            return;
+        }
+    }
 
     // ======================================= GENERATE LISTVIEW DISPLAY ==== //
     // ==== Generate 9 columms of display text to fill the list view ======== //
