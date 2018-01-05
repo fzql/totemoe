@@ -652,7 +652,24 @@ void MessageSession::parseMessage(json const &object, std::string const &raw)
         std::wstringstream wss;
         for (size_t col = 0; col < display.size(); ++col)
         {
-            wss << display[col];
+            // For CSV Format, enclose strings with double quotes and escape
+            // all double quotes in the strings by replacing " with ""
+            // Reference: https://www.csvreader.com/csv_format.php
+            if (col >= 6 && col <= 7 && autoExport == L"csv")
+            {
+                std::wstring value = display[col];
+                std::string::size_type n = 0;
+                while ((n = value.find(L"\"", n)) != std::string::npos)
+                {
+                    value.replace(n, wcslen(L"\""), L"\"\"");
+                    n += wcslen(L"\"\"");
+                }
+                wss << "\"" << value << "\"";
+            }
+            else
+            {
+                wss << display[col];
+            }
             if (col + 1 < display.size())
             {
                 wss << separator;
