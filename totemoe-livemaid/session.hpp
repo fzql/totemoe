@@ -63,6 +63,8 @@ public:
     void setAutoReconnect(bool option = true) { m_bAutoReconnect = option; };
 private:
 
+    bool scrollLocked();
+
     void parseMessage(json const &object, std::string const &raw);
 
     void writeLine(std::wstring const &content);

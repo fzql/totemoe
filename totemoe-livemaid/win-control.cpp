@@ -17,6 +17,7 @@ LRESULT CALLBACK listViewProc(
     {
         if (wParam == 0x1)
         {
+            // Ctrl+A to select all danmaku.
             if (GetKeyState(VK_CONTROL))
             {
                 ::SendMessage(GetParent(hWnd), WM_COMMAND, IDM_DANMAKU_SELECTALL, NULL);
@@ -25,6 +26,7 @@ LRESULT CALLBACK listViewProc(
         }
         else if (wParam == 0x3)
         {
+            // Ctrl+C to copy selected danmaku.
             if (GetKeyState(VK_CONTROL))
             {
                 int nSelected = ListView_GetSelectedCount(hWnd);

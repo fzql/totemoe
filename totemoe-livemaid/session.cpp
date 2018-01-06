@@ -225,7 +225,7 @@ void MessageSession::setFilter(std::wstring const &keyword)
         }
         ListView_SetItemCountEx(hListView, nItems, LVSICF_NOINVALIDATEALL);
         // Scroll for the win!
-        if (!m_bLockVScroll)
+        if (!scrollLocked())
         {
             m_pTableListView->scrollToBottom();
         }
@@ -274,7 +274,7 @@ void MessageSession::setFilterRegex(std::wstring const &regex)
         }
         ListView_SetItemCountEx(hListView, nItems, LVSICF_NOINVALIDATEALL);
         // Scroll for the win!
-        if (!m_bLockVScroll)
+        if (!scrollLocked())
         {
             m_pTableListView->scrollToBottom();
         }
@@ -313,6 +313,40 @@ void MessageSession::setFilterCount()
         }
         m_pStatusBar->setText(0, status);
     }
+}
+
+bool MessageSession::scrollLocked()
+{
+    bool locked = false;
+    if (m_bLockVScroll)
+    {
+        // If manual lock is on, lock scroll.
+        locked = true;
+    }
+    else if (m_pTableListView != nullptr)
+    {
+        // If any item is selected, lock scroll.
+        if (m_pTableListView->getSelectedCount() > 0)
+        {
+            locked = true;
+        }
+        // Otherwise, if newest item is not visible, lock scroll.
+        else
+        {
+            HWND handle = m_pTableListView->getHandle();
+            int iTop = ListView_GetTopIndex(handle);
+            int nPage = ListView_GetCountPerPage(handle);
+            int nCount = ListView_GetItemCount(handle);
+            // Note that insertion happens before scrolling; hence the 1.  The
+            // list view is scrolled if and only if it is filled and the newest
+            // item is just out of sight.
+            if (iTop + nPage + 1 != nCount)
+            {
+                locked = true;
+            }
+        }
+    }
+    return locked;
 }
 
 void MessageSession::parseMessage(json const &object, std::string const &raw)
@@ -704,7 +738,7 @@ void MessageSession::parseMessage(json const &object, std::string const &raw)
             ListView_SetItemCountEx(hListView, m_vFiltered.size(),
                 LVSICF_NOINVALIDATEALL);
         }
-        if (!m_bLockVScroll)
+        if (!scrollLocked())
         {
             m_pTableListView->scrollToBottom();
         }

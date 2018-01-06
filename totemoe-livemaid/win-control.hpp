@@ -221,10 +221,11 @@ public:
 
     void scrollToBottom()
     {
+        // Scrolling to bottom will automatically deselect all selected items.
+        ListView_SetItemState(m_hWnd, -1, LVIF_STATE, LVIS_SELECTED);
+        // Get index of last item and ensure that it is visible.
         int nItems = ListView_GetItemCount(m_hWnd);
         ListView_EnsureVisible(m_hWnd, nItems - 1, TRUE);
-        ListView_SetItemState(m_hWnd, -1, LVIF_STATE,
-            LVIS_SELECTED | LVIS_FOCUSED);
     }
 
     void selectAll()
