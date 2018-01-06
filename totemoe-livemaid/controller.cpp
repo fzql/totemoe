@@ -590,6 +590,27 @@ INT_PTR CALLBACK AboutDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPa
     return (INT_PTR)FALSE;
 }
 
+WNDPROC wpDefaultEditProc;
+
+LRESULT CALLBACK resolveEditProc(
+    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_KEYDOWN:
+    {
+        switch (wParam)
+        {
+        case VK_RETURN:
+            ::SendMessage(::GetParent(hWnd), WM_COMMAND, IDOK, NULL);
+            return TRUE;
+        }
+    }
+    break;
+    }
+    return CallWindowProc((WNDPROC)wpDefaultEditProc, hWnd, message, wParam, lParam);
+}
+
 // Message handler for about box.
 INT_PTR CALLBACK ConnectDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -597,6 +618,9 @@ INT_PTR CALLBACK ConnectDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM l
     switch (message)
     {
     case WM_INITDIALOG:
+        wpDefaultEditProc = (WNDPROC)SetWindowLongPtr(
+            GetDlgItem(hDlg, IDC_CONNECT_RESOLVE),
+            GWLP_WNDPROC, (LONG)resolveEditProc);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
