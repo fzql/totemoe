@@ -188,12 +188,8 @@ namespace Bili
         private:
             // Client endpoint
             Connection::EndPoint m_endpoint;
-            // Stored messages.
-            std::vector<std::string> m_messages;
             // Timer for heartbeat
             std::thread m_heart_beat;
-            // Timer for reading messages
-            std::thread m_messenger;
             // Room id
             size_t m_roomid;
             // Connection id

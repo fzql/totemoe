@@ -93,7 +93,7 @@ void MessageSession::connect()
                     json data = json::parse(msg);
                     if (data.find("cmd") != data.end())
                     {
-                        if (data["cmd"] == "cmd")
+                        if (data["cmd"] == "WEBSOCKET")
                         {
                             if (data["msg"] == "Closed" || data["msg"] == "Failed")
                             {
@@ -133,7 +133,6 @@ void MessageSession::reconnect()
 
 void MessageSession::disconnect()
 {
-    m_bStopThread = true;
     m_room.disconnect(websocketpp::close::status::normal, "User disconnect");
     // Close file.
     if (m_pFile != nullptr)
@@ -146,45 +145,6 @@ void MessageSession::disconnect()
     {
         m_thread.join();
     }
-    std::condition_variable condition;
-    std::unique_lock<std::mutex> lock(m_mutex_message);
-    auto const &messages = m_room.retrieve();
-    if (!messages.empty())
-    {
-        if (m_pStatusBar != nullptr)
-        {
-            m_pStatusBar->setText(2, L"MSG (" + std::to_wstring(m_vDisplay.size()) + L")");
-        }
-        for (auto &msg : messages)
-        {
-            parseMessage({
-                { "time" , time(nullptr) },
-                { "room" , m_room.getRoomID() },
-                { "data", json::parse(msg) }
-            }, msg);
-        }
-    }
-    /*
-    condition.wait(lock, [this]() {
-        auto const &messages = m_room.retrieve();
-        if (!messages.empty())
-        {
-            if (m_pStatusBar != nullptr)
-            {
-                m_pStatusBar->setText(2, L"MSG (" + std::to_wstring(m_vDisplay.size()) + L")");
-            }
-            for (auto &msg : messages)
-            {
-                parseMessage({
-                    { "time" , time(nullptr) },
-                    { "room" , m_room.getRoomID() },
-                    { "data", json::parse(msg) }
-                });
-            }
-        }
-        return !messages.empty();
-    });
-    */
 }
 
 void MessageSession::setFilter(std::wstring const &keyword)

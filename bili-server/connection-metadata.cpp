@@ -26,7 +26,9 @@ void Bili::Server::Connection::MetaData::on_open(
 
     m_messages.push_back(json({
         { "cmd", "WEBSOCKET" },
-        { "msg", "Established" }
+        { "msg", "Established" },
+        { "code", con->get_remote_close_code() },
+        { "info", websocketpp::close::status::get_string(con->get_remote_close_code()) }
     }).dump());
 
     std::string bytes = Bili::Server::Room::PacketHello(m_command);
@@ -46,7 +48,9 @@ void Bili::Server::Connection::MetaData::on_close(
 
     m_messages.push_back(json({
         { "cmd", "WEBSOCKET" },
-        { "msg", "Closed" }
+        { "msg", "Closed" },
+        { "code", con->get_remote_close_code() },
+        { "info", websocketpp::close::status::get_string(con->get_remote_close_code()) }
     }).dump());
 }
 
@@ -61,7 +65,9 @@ void Bili::Server::Connection::MetaData::on_fail(
 
     m_messages.push_back(json({
         { "cmd", "WEBSOCKET" },
-        { "msg", "Failed" }
+        { "msg", "Failed" },
+        { "code", con->get_remote_close_code() },
+        { "info", websocketpp::close::status::get_string(con->get_remote_close_code()) }
     }).dump());
 }
 
